@@ -1,3 +1,3 @@
-Strategy for Battlecode2020:
+Strategy for Battlecode2020
 
 
