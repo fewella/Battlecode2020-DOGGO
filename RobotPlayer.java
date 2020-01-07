@@ -20,7 +20,6 @@ public strictfp class RobotPlayer {
         // This is the RobotController object. You use it to perform actions from this robot,
         // and to get information on its current status.
         RobotPlayer.rc = rc;
-        System.out.println(("I AM STARTING RUN"));
 
         turnCount = 0;
 
@@ -32,16 +31,17 @@ public strictfp class RobotPlayer {
                 // Here, we've separated the controls into a different method for each RobotType.
                 // You can add the missing ones or rewrite this into your own control structure.
                 System.out.println("I'm a " + rc.getType() + "! Location " + rc.getLocation());
+
                 switch (rc.getType()) {
-                    case HQ:                 HQ.run(rc);             break;
-                    case MINER:              runMiner();             break;
-                    case REFINERY:           runRefinery();          break;
-                    case VAPORATOR:          runVaporator();         break;
-                    case DESIGN_SCHOOL:      runDesignSchool();      break;
-                    case FULFILLMENT_CENTER: runFulfillmentCenter(); break;
-                    case LANDSCAPER:         runLandscaper();        break;
-                    case DELIVERY_DRONE:     runDeliveryDrone();     break;
-                    case NET_GUN:            runNetGun();            break;
+                    case HQ:                 HQ.run(rc);                break;
+                    case MINER:              Miner.run(rc);             break;
+                    case REFINERY:           Refinery.run(rc);          break;
+                    case VAPORATOR:          Vaporator.run(rc);         break;
+                    case DESIGN_SCHOOL:      DesignSchool.run(rc);      break;
+                    case FULFILLMENT_CENTER: FulfillmentCenter.run(rc); break;
+                    case LANDSCAPER:         Landscaper.run(rc);        break;
+                    case DELIVERY_DRONE:     DeliveryDrone.run(rc);     break;
+                    case NET_GUN:            NetGun.run(rc);            break;
                 }
 
                 // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
@@ -52,48 +52,6 @@ public strictfp class RobotPlayer {
                 e.printStackTrace();
             }
         }
-    }
-
-    static void runHQ() throws GameActionException {
-        for (Direction dir : directions)
-            tryBuild(RobotType.MINER, dir);
-    }
-
-    static void runMiner() throws GameActionException {
-        tryBlockchain();
-        tryMove(randomDirection());
-        if (tryMove(randomDirection()))
-            System.out.println("I moved!");
-        // tryBuild(randomSpawnedByMiner(), randomDirection());
-        for (Direction dir : directions)
-            tryBuild(RobotType.FULFILLMENT_CENTER, dir);
-        for (Direction dir : directions)
-            if (tryRefine(dir))
-                System.out.println("I refined soup! " + rc.getTeamSoup());
-        for (Direction dir : directions)
-            if (tryMine(dir))
-                System.out.println("I mined soup! " + rc.getSoupCarrying());
-    }
-
-    static void runRefinery() throws GameActionException {
-        // System.out.println("Pollution: " + rc.sensePollution(rc.getLocation()));
-    }
-
-    static void runVaporator() throws GameActionException {
-
-    }
-
-    static void runDesignSchool() throws GameActionException {
-
-    }
-
-    static void runFulfillmentCenter() throws GameActionException {
-        for (Direction dir : directions)
-            tryBuild(RobotType.DELIVERY_DRONE, dir);
-    }
-
-    static void runLandscaper() throws GameActionException {
-
     }
 
     static void runDeliveryDrone() throws GameActionException {
@@ -159,7 +117,6 @@ public strictfp class RobotPlayer {
      * @throws GameActionException
      */
     static boolean tryMove(Direction dir) throws GameActionException {
-        // System.out.println("I am trying to move " + dir + "; " + rc.isReady() + " " + rc.getCooldownTurns() + " " + rc.canMove(dir));
         if (rc.isReady() && rc.canMove(dir)) {
             rc.move(dir);
             return true;
