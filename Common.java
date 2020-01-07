@@ -14,4 +14,8 @@ public class Common {
         } else return false;
     }
 
+    static int getRealRadius(RobotType robotType) {
+        return (int)Math.ceil(Math.sqrt(robotType.sensorRadiusSquared));
+    }
+
 }
