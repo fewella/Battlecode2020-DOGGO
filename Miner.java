@@ -84,6 +84,7 @@ public class Miner {
 
         // Move in that direction
         //if areas of no pollution
+        Direction initialSearchDirection = searchDirection;
         for (int i=0; i < Direction.allDirections().length; i++) {
             if (rc.canMove(searchDirection) && !rc.senseFlooding(rc.getLocation().add(searchDirection))
             && rc.sensePollution(rc.getLocation().add(searchDirection)) == 0 ) {
@@ -94,6 +95,7 @@ public class Miner {
             }
         }
         //if there is pollution
+        searchDirection = initialSearchDirection;
         for (int i=0; i < Direction.allDirections().length; i++) {
             if (rc.canMove(searchDirection) && !rc.senseFlooding(rc.getLocation().add(searchDirection))) {
                 rc.move(searchDirection);
