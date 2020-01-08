@@ -87,7 +87,8 @@ public class Miner {
         Direction initialSearchDirection = searchDirection;
         for (int i=0; i < Direction.allDirections().length; i++) {
             if (rc.canMove(searchDirection) && !rc.senseFlooding(rc.getLocation().add(searchDirection))
-            && rc.sensePollution(rc.getLocation().add(searchDirection)) == 0 ) {
+            && rc.sensePollution(rc.getLocation().add(searchDirection))
+                    <= RobotType.REFINERY.globalPollutionAmount + RobotType.REFINERY.localPollutionAdditiveEffect ){ //TODO: determine actual good value to avoid
                 rc.move(searchDirection);
             } else {
                 //if a wall is hit, try a different direction -> TODO: should also get it to back away from wall to improve search area
