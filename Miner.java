@@ -104,6 +104,8 @@ public class Miner {
                 searchDirection = searchDirection.rotateLeft();
             }
         }
+        //make sure next turn robot goes initial way it was supposed to search
+        searchDirection = initialSearchDirection;
 
         System.out.println("TOTAL MINER BYTECODE USED: " + Clock.getBytecodeNum());
 
