@@ -103,6 +103,8 @@ public class Miner {
             }
         }
 
+        System.out.println("TOTAL MINER BYTECODE USED: " + Clock.getBytecodeNum());
+
     }
 
 }
