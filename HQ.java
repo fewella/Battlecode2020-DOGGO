@@ -27,8 +27,8 @@ public class HQ {
 
         // Try every direction to build a miner
         for (int i=0; i<directions.length; i++) {
-            if(rc.getTeamSoup() > GameConstants.INITIAL_SOUP - 70)
-                Common.tryBuild(rc, RobotType.MINER, directions[dirBuild%8]);
+            if(rc.getTeamSoup() > GameConstants.INITIAL_SOUP - Common.MINER_COST)
+                Common.tryBuild(rc, RobotType.MINER, directions[dirBuild%directions.length]);
             dirBuild++;
         }
 
