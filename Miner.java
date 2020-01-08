@@ -4,6 +4,8 @@ import battlecode.common.*;
 
 public class Miner {
 
+    static Direction searchDirection = null;
+
     public static void run(RobotController rc) throws GameActionException {
 
         // Search for soup!
@@ -31,11 +33,24 @@ public class Miner {
             senseLocation = senseLocation.add(Direction.NORTH);
             searchingEast = !searchingEast;
         }
-
+        System.out.println(("Bytecode used after soup search: " + Clock.getBytecodeNum()));
 
         // Logic for moving!
+        // Determine which direction to move if I haven't yet
+        if (searchDirection == null) {
+            RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
+            for (RobotInfo robot : nearbyRobots) {
+                if (robot.getType() == RobotType.HQ && robot.getTeam() == rc.getTeam()) {
+                    searchDirection = rc.getLocation().directionTo(robot.location);
+                    break;
+                }
+            }
+        }
+
+        // Move in that direction
+        if (rc.canMove(searchDirection)) {
+            rc.move(searchDirection);
+        }
     }
-
-
 
 }
