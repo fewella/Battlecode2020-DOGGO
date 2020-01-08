@@ -2,8 +2,6 @@ package FirstPlayer;
 
 import battlecode.common.*;
 
-import java.util.Map;
-
 public class Miner {
 
     static Direction searchDirection = null;
@@ -87,33 +85,60 @@ public class Miner {
             }
         }
 
-        // Move in that direction
-        //if areas of no pollution
-        Direction initialSearchDirection = searchDirection;
-        for (int i=0; i < Direction.allDirections().length; i++) {
-            if (rc.canMove(searchDirection) && !rc.senseFlooding(rc.getLocation().add(searchDirection))
-            && rc.sensePollution(rc.getLocation().add(searchDirection)) == 0 ) {
-                rc.move(searchDirection);
-            } else {
-                //if a wall is hit, try a different direction -> TODO: should also get it to back away from wall to improve search area
-                searchDirection = searchDirection.rotateLeft();
+
+        // Move in that direction (if haven't found soup)
+        if (soupLocation == null) {
+            // if areas of no pollution:
+            Direction initialSearchDirection = searchDirection;
+            for (int i = 0; i < Direction.allDirections().length; i++) {
+                if (rc.canMove(searchDirection) && !rc.senseFlooding(rc.getLocation().add(searchDirection))
+                        && rc.sensePollution(rc.getLocation().add(searchDirection)) == 0) {
+                    rc.move(searchDirection);
+                } else {
+                    //if a wall is hit, try a different direction -> TODO: should also get it to back away from wall to improve search area
+                    searchDirection = searchDirection.rotateLeft();
+                }
             }
-        }
-        //if there is pollution
-        searchDirection = initialSearchDirection;
-        for (int i=0; i < Direction.allDirections().length; i++) {
-            if (rc.canMove(searchDirection) && !rc.senseFlooding(rc.getLocation().add(searchDirection))) {
-                rc.move(searchDirection);
-            } else {
-                //if a wall is hit, try a different direction -> TODO: should also get it to back away from wall to improve search area
-                searchDirection = searchDirection.rotateLeft();
+            // if there is pollution:
+            searchDirection = initialSearchDirection;
+            for (int i = 0; i < Direction.allDirections().length; i++) {
+                if (rc.canMove(searchDirection) && !rc.senseFlooding(rc.getLocation().add(searchDirection))) {
+                    rc.move(searchDirection);
+                } else {
+                    //if a wall is hit, try a different direction -> TODO: should also get it to back away from wall to improve search area
+                    searchDirection = searchDirection.rotateLeft();
+                }
             }
+            //make sure next turn robot goes initial way it was supposed to search
+            searchDirection = initialSearchDirection;
+
+        } else {
+            // IF WE FOUND THE SOUP, GO GIT IT
+
+            // Algorithm:
+            // 1. If I can mine soup, mine it.
+            // 2. If can't check other locations and update soupLocation if necessary
+            // 3. Lastly, move towards soupLocation (pathfinding algo)
+            // 4. If no soup - set soupLocation to null (starts scan again)
+
+            Direction toSoup = rc.getLocation().directionTo(soupLocation);
+            if (rc.canMineSoup(toSoup)) {
+                rc.mineSoup(toSoup);
+            } else {
+                for (Direction dir : Direction.allDirections()) {
+                    if (rc.canMineSoup(dir)) {
+                        rc.mineSoup(dir);
+                    }
+                }
+            }
+
+            if (rc.canMove(toSoup)) {
+                rc.move(toSoup);
+            }
+
         }
-        //make sure next turn robot goes initial way it was supposed to search
-        searchDirection = initialSearchDirection;
 
         System.out.println("TOTAL MINER BYTECODE USED: " + Clock.getBytecodeNum());
 
     }
-
 }
