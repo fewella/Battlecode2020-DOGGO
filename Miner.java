@@ -2,14 +2,34 @@ package FirstPlayer;
 
 import battlecode.common.*;
 
+import java.util.Map;
+
 public class Miner {
 
     static Direction searchDirection = null;
     static MapLocation refineryLocation = null;
+    static MapLocation soupLocation = null;
 
     public static void run(RobotController rc) throws GameActionException {
 
-        //TODO: read block
+        // TODO: read block
+        // Check PREVIOUS TURN chain, check for soup and refinery
+        Transaction[] transactions = rc.getBlock(rc.getRoundNum() - 1);
+        for (Transaction transaction : transactions) {
+            int[] message = transaction.getMessage();
+            if (message[6] == Common.SIGNATURE) {
+
+                if (message[0] == Common.MINER_FOUND_SOUP_NUM) {
+                    soupLocation = new MapLocation(message[1], message[2]);
+                    System.out.println("SETTING SOUP LOCATION");
+
+                } else if (message[0] == Common.MINER_FOUND_REFINERY_NUM) {
+                    refineryLocation = new MapLocation(message[1], message[2]);
+                    System.out.println("SETTING REFINERY LOCATION");
+
+                }
+            }
+        }
 
         // Search for soup!
         int radius = Common.getRealRadius(RobotType.MINER);
@@ -25,6 +45,7 @@ public class Miner {
                 }
                 if (soupFound > 0) {
                     System.out.println("FOUND SOUP - NOTIFY OTHER MINERS");
+                    Common.broadcast(rc, Common.BroadcastType.MinerFoundSoup, senseLocation.x, senseLocation.y);
                 }
 
                 if (searchingEast) {
@@ -49,13 +70,14 @@ public class Miner {
                 }
             }
         }
-        //Build refinery if can and broadcast the location
+
+        // Build refinery if can and broadcast the location
         if(refineryLocation == null) {
             for (Direction dir : Direction.allDirections()) {
                 if(Common.tryBuild(rc, RobotType.REFINERY, dir))
                 {
                     refineryLocation = rc.getLocation().add(dir);
-                    Common.broadcast(BroadcastType.MinerBuiltRefinery, refineryLocation.x, refineryLocation.y);
+                    Common.broadcast(rc, Common.BroadcastType.MinerBuiltRefinery, refineryLocation.x, refineryLocation.y);
                 }
             }
         }
