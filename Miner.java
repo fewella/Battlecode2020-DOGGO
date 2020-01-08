@@ -97,6 +97,7 @@ public class Miner {
 
         // Move in that direction
         int soupCarrying = rc.getSoupCarrying();
+        System.out.println("I HAVE " + soupCarrying + " SOUP");
         boolean haveSpace = soupCarrying < RobotType.MINER.soupLimit;
 
         if (soupLocation == null && refineryLocation == null) {
@@ -123,9 +124,7 @@ public class Miner {
                 }
             }
 
-            if (rc.canMove(toSoup)) {
-                rc.move(toSoup);
-            }
+            moveInDirection(rc, toSoup);
 
         } else if (!haveSpace && refineryLocation != null) {
 
@@ -146,13 +145,10 @@ public class Miner {
                 }
             }
 
-            if (rc.canMove(toRefinery)) {
-                moveInDirection(rc, toRefinery);
-            }
+            moveInDirection(rc, toRefinery);
         }
 
         System.out.println("TOTAL MINER BYTECODE USED: " + Clock.getBytecodeNum());
-
     }
 
     public static boolean moveInDirection(RobotController rc, Direction dir) throws GameActionException {
@@ -161,6 +157,7 @@ public class Miner {
         // If areas of no pollution
         Direction initialSearchDirection = dir;
         for (int i = 0; i < Direction.allDirections().length; i++) {
+            System.out.println("Trying direction:" + dir.toString());
             if (rc.canMove(dir) && !rc.senseFlooding(rc.getLocation().add(dir))
                     && rc.sensePollution(rc.getLocation().add(dir)) <= tolerablePollution) { //TODO: determine actual good value to avoid
 
@@ -175,6 +172,7 @@ public class Miner {
         // if there is pollution:
         dir = initialSearchDirection;
         for (int i = 0; i < Direction.allDirections().length; i++) {
+            System.out.println("Trying direction (pollution loop):" + dir.toString());
             if (rc.canMove(dir) && !rc.senseFlooding(rc.getLocation().add(dir))) {
                 rc.move(dir);
             } else {

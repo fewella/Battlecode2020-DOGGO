@@ -7,6 +7,9 @@ public class HQ {
     static Direction[] directions = Direction.allDirections();
     static int dirBuild = 0;
 
+    public static int miners = 0;
+    public static final int MAX_MINERS = 5;
+
     public static void run(RobotController rc) throws GameActionException {
 
         // built-in NET GUN check for and shoot drones
@@ -27,8 +30,11 @@ public class HQ {
 
         // Try every direction to build a miner
         for (int i=0; i<directions.length; i++) {
-            if(rc.getTeamSoup() > GameConstants.INITIAL_SOUP + Common.MINER_COST)
-                Common.tryBuild(rc, RobotType.MINER, directions[dirBuild%directions.length]);
+            if(rc.getTeamSoup() > GameConstants.INITIAL_SOUP + Common.MINER_COST && miners < MAX_MINERS) {
+                if (Common.tryBuild(rc, RobotType.MINER, directions[dirBuild % directions.length])) {
+                    miners++;
+                }
+            }
             dirBuild++;
         }
 
