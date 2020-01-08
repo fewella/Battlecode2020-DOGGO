@@ -61,6 +61,17 @@ public class Miner {
         }
 
         // Move in that direction
+        //if areas of no pollution
+        for (int i=0; i < Direction.allDirections().length; i++) {
+            if (rc.canMove(searchDirection) && !rc.senseFlooding(rc.getLocation().add(searchDirection))
+            && rc.sensePollution(rc.getLocation().add(searchDirection)) == 0 ) {
+                rc.move(searchDirection);
+            } else {
+                //if a wall is hit, try a different direction -> TODO: should also get it to back away from wall to improve search area
+                searchDirection = searchDirection.rotateLeft();
+            }
+        }
+        //if there is pollution
         for (int i=0; i < Direction.allDirections().length; i++) {
             if (rc.canMove(searchDirection) && !rc.senseFlooding(rc.getLocation().add(searchDirection))) {
                 rc.move(searchDirection);
@@ -69,6 +80,7 @@ public class Miner {
                 searchDirection = searchDirection.rotateLeft();
             }
         }
+
     }
 
 }
