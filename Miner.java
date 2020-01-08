@@ -31,33 +31,38 @@ public class Miner {
             }
         }
 
-        // Search for soup!
-        int radius = Common.getRealRadius(RobotType.MINER);
-        MapLocation currLocation = rc.getLocation();
-        MapLocation senseLocation = new MapLocation(currLocation.x - radius, currLocation.y - radius);
+        // Search for soup! But only if we haven't found soup
+        if (soupLocation == null) {
+            int radius = Common.getRealRadius(RobotType.MINER);
+            MapLocation currLocation = rc.getLocation();
+            MapLocation senseLocation = new MapLocation(currLocation.x - radius, currLocation.y - radius);
 
-        boolean searchingEast = true;
-        for (int i = 0; i < radius * 2; i++) {
-            for (int j  = 0; j < radius * 2; j++) {
-                int soupFound = 0;
-                if (rc.canSenseLocation(senseLocation)) {
-                    soupFound = rc.senseSoup(senseLocation);
-                }
-                if (soupFound > 0) {
-                    System.out.println("FOUND SOUP - NOTIFY OTHER MINERS");
-                    Common.broadcast(rc, Common.BroadcastType.MinerFoundSoup, senseLocation.x, senseLocation.y);
-                }
+            boolean searchingEast = true;
+            for (int i = 0; i < radius * 2; i++) {
+                for (int j = 0; j < radius * 2; j++) {
+                    int soupFound = 0;
+                    if (rc.canSenseLocation(senseLocation)) {
+                        soupFound = rc.senseSoup(senseLocation);
+                    }
+                    if (soupFound > 0) {
+                        Common.broadcast(rc, Common.BroadcastType.MinerFoundSoup, senseLocation.x, senseLocation.y);
+                        soupLocation = senseLocation;
+                        break;
+                    }
 
-                if (searchingEast) {
-                    senseLocation = senseLocation.add(Direction.EAST);
-                } else {
-                    senseLocation = senseLocation.add(Direction.WEST);
+                    if (searchingEast) {
+                        senseLocation = senseLocation.add(Direction.EAST);
+                    } else {
+                        senseLocation = senseLocation.add(Direction.WEST);
+                    }
                 }
+                if (soupLocation != null) {
+                    break;
+                }
+                senseLocation = senseLocation.add(Direction.NORTH);
+                searchingEast = !searchingEast;
             }
-            senseLocation = senseLocation.add(Direction.NORTH);
-            searchingEast = !searchingEast;
         }
-        System.out.println(("Bytecode used after soup search: " + Clock.getBytecodeNum()));
 
         // Logic for moving!
         // Determine which direction to move if I haven't yet

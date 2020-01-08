@@ -68,6 +68,7 @@ public class Common {
 
         if (rc.canSubmitTransaction(message, START_COST)) {
             rc.submitTransaction(message, START_COST);
+            System.out.println("TRANSMITTING");
             return true;
         } else {
             return false;
