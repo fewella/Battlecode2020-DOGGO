@@ -74,8 +74,18 @@ public class Miner {
             }
         }
 
+        // Check if refinery exists nearby
+        if (refineryLocation == null) {
+            RobotInfo[] nearby = rc.senseNearbyRobots();
+            for (RobotInfo curr : nearby) {
+                if (curr.getType() == RobotType.REFINERY && curr.getTeam() == rc.getTeam()) {
+                    refineryLocation = curr.location;
+                }
+            }
+        }
+
         // Build refinery if can and broadcast the location
-        if(refineryLocation == null) {
+        if(refineryLocation == null && soupLocation != null) {
             for (Direction dir : Direction.allDirections()) {
                 if(Common.tryBuild(rc, RobotType.REFINERY, dir))
                 {
@@ -91,31 +101,7 @@ public class Miner {
 
         if (soupLocation == null && refineryLocation == null) {
             //if areas of no pollution
-            Direction initialSearchDirection = searchDirection;
-            for (int i=0; i < Direction.allDirections().length; i++) {
-                if (rc.canMove(searchDirection) && !rc.senseFlooding(rc.getLocation().add(searchDirection))
-                        && rc.sensePollution(rc.getLocation().add(searchDirection))
-                        <= RobotType.REFINERY.globalPollutionAmount + RobotType.REFINERY.localPollutionAdditiveEffect) { //TODO: determine actual good value to avoid
-                    rc.move(searchDirection);
-                } else {
-                    //if a wall is hit, try a different direction -> TODO: should also get it to back away from wall to improve search area
-                    searchDirection = searchDirection.rotateLeft();
-
-                }
-            }
-
-            // if there is pollution:
-            searchDirection = initialSearchDirection;
-            for (int i = 0; i < Direction.allDirections().length; i++) {
-                if (rc.canMove(searchDirection) && !rc.senseFlooding(rc.getLocation().add(searchDirection))) {
-                    rc.move(searchDirection);
-                } else {
-                    //if a wall is hit, try a different direction -> TODO: should also get it to back away from wall to improve search area
-                    searchDirection = searchDirection.rotateLeft();
-                }
-            }
-            //make sure next turn robot goes initial way it was supposed to search
-            searchDirection = initialSearchDirection;
+            moveInDirection(rc, searchDirection);
 
         } else if (soupLocation != null && haveSpace) {
             // IF WE FOUND THE SOUP, GO GIT IT
@@ -161,11 +147,47 @@ public class Miner {
             }
 
             if (rc.canMove(toRefinery)) {
-                rc.move(toRefinery);
+                moveInDirection(rc, toRefinery);
             }
         }
 
         System.out.println("TOTAL MINER BYTECODE USED: " + Clock.getBytecodeNum());
 
     }
+
+    public static boolean moveInDirection(RobotController rc, Direction dir) throws GameActionException {
+        int tolerablePollution = RobotType.REFINERY.globalPollutionAmount + RobotType.REFINERY.localPollutionAdditiveEffect;
+
+        // If areas of no pollution
+        Direction initialSearchDirection = dir;
+        for (int i = 0; i < Direction.allDirections().length; i++) {
+            if (rc.canMove(dir) && !rc.senseFlooding(rc.getLocation().add(dir))
+                    && rc.sensePollution(rc.getLocation().add(dir)) <= tolerablePollution) { //TODO: determine actual good value to avoid
+
+                rc.move(dir);
+                break;
+            } else {
+                //if a wall is hit, try a different direction -> TODO: should also get it to back away from wall to improve search area
+                dir = dir.rotateLeft();
+            }
+        }
+
+        // if there is pollution:
+        dir = initialSearchDirection;
+        for (int i = 0; i < Direction.allDirections().length; i++) {
+            if (rc.canMove(dir) && !rc.senseFlooding(rc.getLocation().add(dir))) {
+                rc.move(dir);
+            } else {
+                //if a wall is hit, try a different direction -> TODO: should also get it to back away from wall to improve search area
+                dir = dir.rotateLeft();
+            }
+        }
+        //make sure next turn robot goes initial way it was supposed to search
+        dir = initialSearchDirection;
+
+        return true;
+    }
+
 }
+
+
