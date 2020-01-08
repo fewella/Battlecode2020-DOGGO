@@ -4,10 +4,7 @@ import battlecode.common.*;
 
 public class HQ {
 
-    static Direction[] directions = {Direction.NORTH, Direction.NORTHEAST,
-            Direction.EAST, Direction.SOUTHEAST,
-            Direction.SOUTH, Direction.SOUTHWEST,
-            Direction.WEST, Direction.NORTHWEST};
+    static Direction[] directions = Direction.allDirections();
     static int dirBuild = 0;
 
     public static void run(RobotController rc) throws GameActionException {
@@ -30,7 +27,8 @@ public class HQ {
 
         // Try every direction to build a miner
         for (int i=0; i<directions.length; i++) {
-            Common.tryBuild(rc, RobotType.MINER, directions[dirBuild%8]);
+            if(rc.getTeamSoup() > GameConstants.INITIAL_SOUP - 70)
+                Common.tryBuild(rc, RobotType.MINER, directions[dirBuild%8]);
             dirBuild++;
         }
 

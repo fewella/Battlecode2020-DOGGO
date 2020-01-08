@@ -5,8 +5,11 @@ import battlecode.common.*;
 public class Miner {
 
     static Direction searchDirection = null;
+    static MapLocation refineryLocation = null;
 
     public static void run(RobotController rc) throws GameActionException {
+
+        //TODO: read block
 
         // Search for soup!
         int radius = Common.getRealRadius(RobotType.MINER);
@@ -41,15 +44,30 @@ public class Miner {
             RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
             for (RobotInfo robot : nearbyRobots) {
                 if (robot.getType() == RobotType.HQ && robot.getTeam() == rc.getTeam()) {
-                    searchDirection = rc.getLocation().directionTo(robot.location);
+                    searchDirection = rc.getLocation().directionTo(robot.location).opposite();
                     break;
+                }
+            }
+        }
+        //Build refinery if can and broadcast the location
+        if(refineryLocation == null) {
+            for (Direction dir : Direction.allDirections()) {
+                if(Common.tryBuild(rc, RobotType.REFINERY, dir))
+                {
+                    refineryLocation = rc.getLocation().add(dir);
+                    Common.broadcast(BroadcastType.MinerBuiltRefinery, refineryLocation.x, refineryLocation.y);
                 }
             }
         }
 
         // Move in that direction
-        if (rc.canMove(searchDirection)) {
-            rc.move(searchDirection);
+        for (int i=0; i < Direction.allDirections().length; i++) {
+            if (rc.canMove(searchDirection)) {
+                rc.move(searchDirection);
+            } else {
+                //if a wall is hit, try a different direction -> should also get it to back away from wall to improve search area
+                searchDirection = searchDirection.rotateLeft();
+            }
         }
     }
 

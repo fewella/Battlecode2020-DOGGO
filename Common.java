@@ -6,7 +6,8 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotType;
 
 enum BroadcastType {
-    MinerFoundSoup;
+    MinerFoundSoup,
+    MinerBuiltRefinery
 }
 
 public class Common {
@@ -21,6 +22,7 @@ public class Common {
     static int getRealRadius(RobotType robotType) {
         return (int)Math.ceil(Math.sqrt(robotType.sensorRadiusSquared));
     }
+
 
     /**
      * Broadcasts a certain type of update to the blockchain
