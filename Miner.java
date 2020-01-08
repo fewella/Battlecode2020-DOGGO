@@ -85,20 +85,25 @@ public class Miner {
             }
         }
 
+        // Move in that direction
+        int soupCarrying = rc.getSoupCarrying();
+        boolean haveSpace = soupCarrying < RobotType.MINER.soupLimit;
 
-        // Move in that direction (if haven't found soup)
-        if (soupLocation == null) {
-            // if areas of no pollution:
+        if (soupLocation == null && refineryLocation == null) {
+            //if areas of no pollution
             Direction initialSearchDirection = searchDirection;
-            for (int i = 0; i < Direction.allDirections().length; i++) {
+            for (int i=0; i < Direction.allDirections().length; i++) {
                 if (rc.canMove(searchDirection) && !rc.senseFlooding(rc.getLocation().add(searchDirection))
-                        && rc.sensePollution(rc.getLocation().add(searchDirection)) == 0) {
+                        && rc.sensePollution(rc.getLocation().add(searchDirection))
+                        <= RobotType.REFINERY.globalPollutionAmount + RobotType.REFINERY.localPollutionAdditiveEffect) { //TODO: determine actual good value to avoid
                     rc.move(searchDirection);
                 } else {
                     //if a wall is hit, try a different direction -> TODO: should also get it to back away from wall to improve search area
                     searchDirection = searchDirection.rotateLeft();
+
                 }
             }
+
             // if there is pollution:
             searchDirection = initialSearchDirection;
             for (int i = 0; i < Direction.allDirections().length; i++) {
@@ -112,7 +117,7 @@ public class Miner {
             //make sure next turn robot goes initial way it was supposed to search
             searchDirection = initialSearchDirection;
 
-        } else {
+        } else if (soupLocation != null && haveSpace) {
             // IF WE FOUND THE SOUP, GO GIT IT
 
             // Algorithm:
@@ -136,6 +141,28 @@ public class Miner {
                 rc.move(toSoup);
             }
 
+        } else if (!haveSpace && refineryLocation != null) {
+
+            // Algorithm:
+            // 1. If I can deposit in direction, do that
+            // 2. If fails, check remaining directions to be safe
+            // 3. Else, move towards refinery
+            // TODO: Use nearer refinery if I know exists
+
+            Direction toRefinery = rc.getLocation().directionTo(refineryLocation);
+            if (rc.canDepositSoup(toRefinery)) {
+                rc.depositSoup(toRefinery, soupCarrying);
+            } else {
+                for (Direction dir : Direction.allDirections()) {
+                    if (rc.canDepositSoup(dir)) {
+                        rc.depositSoup(dir, soupCarrying);
+                    }
+                }
+            }
+
+            if (rc.canMove(toRefinery)) {
+                rc.move(toRefinery);
+            }
         }
 
         System.out.println("TOTAL MINER BYTECODE USED: " + Clock.getBytecodeNum());
