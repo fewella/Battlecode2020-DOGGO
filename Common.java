@@ -8,11 +8,13 @@ public class Common {
 
     enum BroadcastType {
         MinerFoundSoup,
-        MinerBuiltRefinery
+        MinerBuiltRefinery,
+        LandscaperWantsDrone
     }
 
     static final int MINER_FOUND_SOUP_NUM     = 0;
     static final int MINER_FOUND_REFINERY_NUM = 1;
+    static final int LANDSCAPER_WANTS_DRONE = 2;
 
     static final int START_COST         = 15;
 
@@ -48,6 +50,10 @@ public class Common {
                 message[0] = MINER_FOUND_REFINERY_NUM;
                 break;
 
+            case LandscaperWantsDrone:
+                message[0] = LANDSCAPER_WANTS_DRONE;
+                //message[4] = //TODO transmit HQ coords
+
             default:
                 message[-1] = -1;
                 break;
@@ -65,5 +71,7 @@ public class Common {
             return false;
         }
     }
+
+
 
 }
