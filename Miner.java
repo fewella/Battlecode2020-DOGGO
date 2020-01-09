@@ -8,7 +8,13 @@ public class Miner {
     static MapLocation refineryLocation = null;
     static MapLocation soupLocation = null;
 
+    // toggle for building design school/fulfillment center
+    static boolean builtDesignSchool = false;
+    static boolean builtRefinery = false;
+
     public static void run(RobotController rc) throws GameActionException {
+        MapLocation currLocation = rc.getLocation();
+        int currSoup = rc.getTeamSoup();
 
         // TODO: read block
         // Check PREVIOUS TURN chain, check for soup and refinery
@@ -29,10 +35,20 @@ public class Miner {
             }
         }
 
+        // Build fulfillment center or design school if able!
+        if (builtDesignSchool) {
+            if (tryBuildBuilding(rc, RobotType.FULFILLMENT_CENTER, currLocation)) {
+                builtDesignSchool = true;
+            }
+        } else {
+            if (tryBuildBuilding(rc, RobotType.DESIGN_SCHOOL, currLocation)) {
+                builtDesignSchool = false;
+            }
+        }
+
         // Search for soup! But only if we haven't found soup
         if (soupLocation == null) {
             int radius = Common.getRealRadius(RobotType.MINER);
-            MapLocation currLocation = rc.getLocation();
             MapLocation senseLocation = new MapLocation(currLocation.x - radius, currLocation.y - radius);
 
             boolean searchingEast = true;
@@ -68,7 +84,7 @@ public class Miner {
             RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
             for (RobotInfo robot : nearbyRobots) {
                 if (robot.getType() == RobotType.HQ && robot.getTeam() == rc.getTeam()) {
-                    searchDirection = rc.getLocation().directionTo(robot.location).opposite();
+                    searchDirection = currLocation.directionTo(robot.location).opposite();
                     break;
                 }
             }
@@ -89,22 +105,18 @@ public class Miner {
             for (Direction dir : Direction.allDirections()) {
                 if(Common.tryBuild(rc, RobotType.REFINERY, dir))
                 {
-                    refineryLocation = rc.getLocation().add(dir);
+                    refineryLocation = currLocation.add(dir);
                     Common.broadcast(rc, Common.BroadcastType.MinerBuiltRefinery, refineryLocation.x, refineryLocation.y);
                 }
             }
         }
 
-        // Move in that direction
+        // Move.
         int soupCarrying = rc.getSoupCarrying();
         System.out.println("I HAVE " + soupCarrying + " SOUP");
         boolean haveSpace = soupCarrying < RobotType.MINER.soupLimit;
 
-        if (soupLocation == null && refineryLocation == null) {
-            //if areas of no pollution
-            moveInDirection(rc, searchDirection);
-
-        } else if (soupLocation != null && haveSpace) {
+        if (soupLocation != null && haveSpace) {
             // IF WE FOUND THE SOUP, GO GIT IT
 
             // Algorithm:
@@ -113,28 +125,30 @@ public class Miner {
             // 3. Lastly, move towards soupLocation (pathfinding algo)
             // 4. If no soup - set soupLocation to null (starts scan again)
 
-            Direction toSoup = rc.getLocation().directionTo(soupLocation);
+            boolean minedSoup = false;
+            Direction toSoup = currLocation.directionTo(soupLocation);
             if (rc.canMineSoup(toSoup)) {
                 rc.mineSoup(toSoup);
+                minedSoup = true;
             } else {
                 for (Direction dir : Direction.allDirections()) {
                     if (rc.canMineSoup(dir)) {
                         rc.mineSoup(dir);
+                        soupLocation = currLocation.add(dir);
+                        minedSoup = true;
                     }
                 }
             }
 
-            moveInDirection(rc, toSoup);
-
         } else if (!haveSpace && refineryLocation != null) {
+            // GO BACK TO REFINERY
 
             // Algorithm:
             // 1. If I can deposit in direction, do that
             // 2. If fails, check remaining directions to be safe
             // 3. Else, move towards refinery
-            // TODO: Use nearer refinery if I know exists
 
-            Direction toRefinery = rc.getLocation().directionTo(refineryLocation);
+            Direction toRefinery = currLocation.directionTo(refineryLocation);
             if (rc.canDepositSoup(toRefinery)) {
                 rc.depositSoup(toRefinery, soupCarrying);
             } else {
@@ -146,10 +160,15 @@ public class Miner {
             }
 
             moveInDirection(rc, toRefinery);
+
+        } else {
+            System.out.println("SEARCH DIRECTION");
+            moveInDirection(rc, searchDirection);
         }
 
         System.out.println("TOTAL MINER BYTECODE USED: " + Clock.getBytecodeNum());
     }
+
 
     public static boolean moveInDirection(RobotController rc, Direction dir) throws GameActionException {
         int tolerablePollution = RobotType.REFINERY.globalPollutionAmount + RobotType.REFINERY.localPollutionAdditiveEffect;
@@ -180,12 +199,21 @@ public class Miner {
                 dir = dir.rotateLeft();
             }
         }
-        //make sure next turn robot goes initial way it was supposed to search
-        dir = initialSearchDirection;
 
         return true;
     }
 
+    static boolean tryBuildBuilding(RobotController rc, RobotType building, MapLocation currLocation) throws GameActionException{
+        for (Direction dir : Direction.allDirections()) {
+            boolean isSoup = rc.senseSoup(currLocation.add(dir)) > 0;
+            if (!isSoup && rc.isReady() && rc.canBuildRobot(building, dir)) {
+                rc.buildRobot(building, dir);
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
 
 

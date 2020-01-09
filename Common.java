@@ -14,15 +14,6 @@ public class Common {
     static final int MINER_FOUND_SOUP_NUM     = 0;
     static final int MINER_FOUND_REFINERY_NUM = 1;
 
-    static final int MINER_COST         = 70;
-    static final int LANDSCAPER_COST    = 150;
-    static final int DRONE_COST         = 150;
-    static final int REFINERY_COST      = 200;
-    static final int VAPORATOR_COST     = 1000;
-    static final int DESIGN_SCHOOL_COST = 150;
-    static final int FULFILLMENT_COST   = 150;
-    static final int NET_GUN_COST       = 250;
-
     static final int START_COST         = 15;
 
     static final int SIGNATURE = 687971717;
@@ -73,7 +64,6 @@ public class Common {
         } else {
             return false;
         }
-
     }
 
 }

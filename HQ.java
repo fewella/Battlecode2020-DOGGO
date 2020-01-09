@@ -8,7 +8,6 @@ public class HQ {
     static int dirBuild = 0;
 
     public static int miners = 0;
-    public static final int MAX_MINERS = 5;
 
     public static void run(RobotController rc) throws GameActionException {
 
@@ -29,8 +28,9 @@ public class HQ {
         }
 
         // Try every direction to build a miner
+        int MAX_MINERS = 5 + (rc.getRoundNum() / 100);
         for (int i=0; i<directions.length; i++) {
-            if(rc.getTeamSoup() > GameConstants.INITIAL_SOUP + Common.MINER_COST && miners < MAX_MINERS) {
+            if(rc.getTeamSoup() > GameConstants.INITIAL_SOUP + RobotType.MINER.cost && miners < MAX_MINERS) {
                 if (Common.tryBuild(rc, RobotType.MINER, directions[dirBuild % directions.length])) {
                     miners++;
                 }
