@@ -8,7 +8,7 @@ public class Landscaper {
     static MapLocation myHQLocation = null;
 
     public static void run(RobotController rc) throws GameActionException {
-        boolean attacker = rc.getRoundNum() % 2 == 0;
+        boolean attacker = true;
         //hopefully spawn near the HQ and can save it
         if(myHQLocation == null){
             RobotInfo[] nearby = rc.senseNearbyRobots(RobotType.MINER.sensorRadiusSquared, rc.getTeam());
@@ -46,7 +46,7 @@ public class Landscaper {
                         tryDig(rc, opponentHQDirection);
                     }
                 }
-            }else {
+            }else if(rc.getRoundNum()%20 == 0){
                 //if not, send message to get carried over
                 broadcastPickup(rc, rc.getLocation().x, rc.getLocation().y, myHQLocation.x, myHQLocation.y);
             }
@@ -93,6 +93,7 @@ public class Landscaper {
         message[2] = yL;
         message[3] = xH;
         message[4] = yH;
+        message[5] = rc.getID();
         message[6] = Common.SIGNATURE;
 
         if (rc.canSubmitTransaction(message, Common.START_COST)) {
