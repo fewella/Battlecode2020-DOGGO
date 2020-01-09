@@ -35,17 +35,6 @@ public class Miner {
             }
         }
 
-        // Build fulfillment center or design school if able!
-        if (builtDesignSchool) {
-            if (tryBuildBuilding(rc, RobotType.FULFILLMENT_CENTER, currLocation)) {
-                builtDesignSchool = true;
-            }
-        } else {
-            if (tryBuildBuilding(rc, RobotType.DESIGN_SCHOOL, currLocation)) {
-                builtDesignSchool = false;
-            }
-        }
-
         // Search for soup! But only if we haven't found soup
         if (soupLocation == null) {
             int radius = Common.getRealRadius(RobotType.MINER);
@@ -111,6 +100,17 @@ public class Miner {
             }
         }
 
+        // Build fulfillment center or design school if able!
+//        if (builtDesignSchool) {
+//            if (tryBuildBuilding(rc, RobotType.FULFILLMENT_CENTER, currLocation)) {
+//                builtDesignSchool = true;
+//            }
+//        } else {
+//            if (tryBuildBuilding(rc, RobotType.DESIGN_SCHOOL, currLocation)) {
+//                builtDesignSchool = false;
+//            }
+//        }
+
         // Move.
         int soupCarrying = rc.getSoupCarrying();
         System.out.println("I HAVE " + soupCarrying + " SOUP");
@@ -125,20 +125,20 @@ public class Miner {
             // 3. Lastly, move towards soupLocation (pathfinding algo)
             // 4. If no soup - set soupLocation to null (starts scan again)
 
-            boolean minedSoup = false;
             Direction toSoup = currLocation.directionTo(soupLocation);
             if (rc.canMineSoup(toSoup)) {
                 rc.mineSoup(toSoup);
-                minedSoup = true;
+
             } else {
                 for (Direction dir : Direction.allDirections()) {
                     if (rc.canMineSoup(dir)) {
                         rc.mineSoup(dir);
                         soupLocation = currLocation.add(dir);
-                        minedSoup = true;
                     }
                 }
             }
+
+            moveInDirection(rc, toSoup);
 
         } else if (!haveSpace && refineryLocation != null) {
             // GO BACK TO REFINERY
