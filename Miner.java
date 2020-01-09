@@ -148,17 +148,26 @@ public class Miner {
             // 3. Lastly, move towards soupLocation (pathfinding algo)
             // 4. If no soup - set soupLocation to null (starts scan again)
 
+            boolean mined = false;
+
             Direction toSoup = currLocation.directionTo(soupLocation);
             if (rc.canMineSoup(toSoup)) {
                 rc.mineSoup(toSoup);
+                mined = true;
 
             } else {
                 for (Direction dir : Direction.allDirections()) {
                     if (rc.canMineSoup(dir)) {
                         rc.mineSoup(dir);
+                        mined = true;
                         soupLocation = currLocation.add(dir);
                     }
                 }
+            }
+
+            int distanceToSoup = currLocation.distanceSquaredTo(soupLocation);
+            if (!mined && distanceToSoup <= 2) {
+                soupLocation = null;
             }
 
             moveInDirection(rc, toSoup);
@@ -185,7 +194,7 @@ public class Miner {
             moveInDirection(rc, toRefinery);
 
         } else {
-            System.out.println("SEARCH DIRECTION");
+            System.out.println("SEARCH DIRECTION: " + searchDirection);
             moveInDirection(rc, searchDirection);
         }
 
@@ -194,8 +203,6 @@ public class Miner {
 
 
     public static boolean moveInDirection(RobotController rc, Direction dir) throws GameActionException {
-        System.out.println("ENTERING MOVE");
-
         MapLocation currLocation = rc.getLocation();
 
         int tolerablePollution = RobotType.REFINERY.globalPollutionAmount + RobotType.REFINERY.localPollutionAdditiveEffect;
@@ -238,7 +245,7 @@ public class Miner {
         // if there is pollution:
         dir = initialSearchDirection;
         for (int i = 0; i < Direction.allDirections().length; i++) {
-            System.out.println("Trying direction (pollution loop):" + dir.toString());
+            // System.out.println("Trying direction (pollution loop):" + dir.toString());
             if (rc.canMove(dir) && !rc.senseFlooding(rc.getLocation().add(dir))) {
                 rc.move(dir);
             } else {
@@ -247,7 +254,6 @@ public class Miner {
             }
         }
 
-        System.out.println("RETURNING FROM MOVE");
         return true;
     }
 
