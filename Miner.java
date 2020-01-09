@@ -22,7 +22,7 @@ public class Miner {
             int[] message = transaction.getMessage();
             if (message[6] == Common.SIGNATURE) {
 
-                if (message[0] == Common.MINER_FOUND_SOUP_NUM) {
+                if (message[0] == Common.MINER_FOUND_SOUP_NUM && soupLocation == null) {
                     soupLocation = new MapLocation(message[1], message[2]);
                     System.out.println("SETTING SOUP LOCATION");
 

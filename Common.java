@@ -2,8 +2,6 @@ package FirstPlayer;
 
 import battlecode.common.*;
 
-import java.util.Map;
-
 public class Common {
 
     enum BroadcastType {
@@ -17,7 +15,7 @@ public class Common {
     static final int LANDSCAPER_WANTS_DRONE = 2;
 
     static final int SEARCH_SOUP = 1;
-    static final int SEARCH_WATER = 2;
+    static final int SEARCH_FLOOD = 2;
 
     static final int START_COST         = 15;
 
@@ -57,7 +55,7 @@ public class Common {
                             tileLocation = senseLocation;
                             break;
                         }
-                    } else if (tile == SEARCH_WATER) {
+                    } else if (tile == SEARCH_FLOOD) {
                         if (rc.senseFlooding(senseLocation)) {
                             tileLocation = senseLocation;
                             break;
@@ -121,7 +119,4 @@ public class Common {
             return false;
         }
     }
-
-
-
 }

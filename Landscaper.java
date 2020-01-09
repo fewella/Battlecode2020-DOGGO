@@ -2,12 +2,16 @@ package FirstPlayer;
 
 import battlecode.common.*;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Map;
+
 public class Landscaper {
 
     static MapLocation opponentHQLocation = null;
     static MapLocation myHQLocation = null;
 
-    static MapLocation waterLocation = null;
+    static MapLocation floodLocation = null;
 
     public static void run(RobotController rc) throws GameActionException {
         // boolean attacker = rc.getRoundNum() % 2 == 0;
@@ -60,13 +64,58 @@ public class Landscaper {
         }
     }
 
-    static void digFromFlood(RobotController rc){
+    static void digFromFlood(RobotController rc) throws GameActionException {
         // Algorithm:
         // 1. If don't have water location, find it
+        //      If can't find, search
+        // 2. If have location and can't dig after trying,  go towards
+        // 3. Else, dig
+        MapLocation currLocation = rc.getLocation();
+
+        if (floodLocation == null) {
+            int radius = Common.getRealRadius(RobotType.LANDSCAPER);
+            floodLocation = Common.searchForTile(rc, currLocation, Common.SEARCH_FLOOD, radius);
+        }
+
+        if (floodLocation != null) {
+            int distanceToFlood = currLocation.distanceSquaredTo(floodLocation);
+            Direction toFlood = currLocation.directionTo(floodLocation);
+            if (rc.canDigDirt(toFlood) && distanceToFlood <= 2) {
+                rc.digDirt(toFlood);
+            } else {
+                for (Direction dir : Direction.allDirections()) {
+                    if (rc.canDigDirt(dir) && distanceToFlood <= 2) {
+                        rc.digDirt(toFlood);
+                    }
+                }
+            }
+
+            moveInDirection(rc, toFlood);
+        }
     }
 
-    static void depositDirt(RobotController rc) {
+    static void depositDirt(RobotController rc) throws GameActionException {
+        MapLocation currLocation = rc.getLocation();
+        Direction toHQ = currLocation.directionTo(myHQLocation);
 
+        boolean deposited = false;
+
+        ArrayList<MapLocation> depositSpots = new ArrayList<>();
+        for (Direction dir : Direction.allDirections()) {
+            depositSpots.add(myHQLocation.add(dir));
+        }
+
+        for (Direction dir : Direction.allDirections()) {
+            MapLocation depositLocation = currLocation.add(dir);
+            if (depositSpots.contains(depositLocation) && rc.canDepositDirt(dir)) {
+                rc.depositDirt(dir);
+                deposited = true;
+            }
+        }
+
+        if (!deposited) {
+            moveInDirection(rc, toHQ);
+        }
     }
 
     static boolean tryDig(RobotController rc, Direction dir) throws GameActionException {
