@@ -7,7 +7,10 @@ public class Landscaper {
     static MapLocation opponentHQLocation = null;
     static MapLocation myHQLocation = null;
 
+    static MapLocation waterLocation = null;
+
     public static void run(RobotController rc) throws GameActionException {
+
         boolean attacker = true;
         //hopefully spawn near the HQ and can save it
         if(myHQLocation == null){
@@ -22,9 +25,12 @@ public class Landscaper {
         }
 
         if (!attacker) { //defender, will wall the base TODO: later care about water round elevations
-            while (rc.getDirtCarrying() < RobotType.LANDSCAPER.dirtLimit) {
+            if (rc.getDirtCarrying() < RobotType.LANDSCAPER.dirtLimit) {
                 digFromFlood(rc);
+            } else {
+                depositDirt(rc);
             }
+
         } else {
             //look to see if enemy HQ in range and dig them in
             if(opponentHQLocation == null){
@@ -53,7 +59,13 @@ public class Landscaper {
             }
         }
     }
+
     static void digFromFlood(RobotController rc){
+        // Algorithm:
+        // 1. If don't have water location, find it
+    }
+
+    static void depositDirt(RobotController rc) {
 
     }
 
