@@ -8,9 +8,8 @@ public class Miner {
     static MapLocation refineryLocation = null;
     static MapLocation soupLocation = null;
 
-    // toggle for building design school/fulfillment center
     static boolean builtDesignSchool = false;
-    static boolean builtRefinery = false;
+    static boolean builtFulfillmentCenter = false;
 
     public static void run(RobotController rc) throws GameActionException {
         MapLocation currLocation = rc.getLocation();
@@ -79,12 +78,32 @@ public class Miner {
             }
         }
 
+        // TODO: Make sure other uses of `nearby` don't require other team robots
+        RobotInfo[] nearby = rc.senseNearbyRobots(RobotType.MINER.sensorRadiusSquared, rc.getTeam());
+
         // Check if refinery exists nearby
+        // While we're at it, check for fulfillment centers and design schools
         if (refineryLocation == null) {
-            RobotInfo[] nearby = rc.senseNearbyRobots();
             for (RobotInfo curr : nearby) {
-                if (curr.getType() == RobotType.REFINERY && curr.getTeam() == rc.getTeam()) {
+                if (curr.getType() == RobotType.REFINERY) {
                     refineryLocation = curr.location;
+                }
+
+                switch (curr.getType()) {
+                    case REFINERY:
+                        refineryLocation = curr.location;
+                        break;
+
+                    case DESIGN_SCHOOL:
+                        builtDesignSchool = true;
+                        break;
+
+                    case FULFILLMENT_CENTER:
+                        builtFulfillmentCenter = true;
+                        break;
+
+                    default:
+                        break;
                 }
             }
         }
@@ -100,16 +119,20 @@ public class Miner {
             }
         }
 
-        // Build fulfillment center or design school if able!
-//        if (builtDesignSchool) {
-//            if (tryBuildBuilding(rc, RobotType.FULFILLMENT_CENTER, currLocation)) {
-//                builtDesignSchool = true;
-//            }
-//        } else {
-//            if (tryBuildBuilding(rc, RobotType.DESIGN_SCHOOL, currLocation)) {
-//                builtDesignSchool = false;
-//            }
-//        }
+        // Build fulfillment center or design school if able
+        if (refineryLocation != null) { // Make sure refinery already exists
+            if (!builtDesignSchool) {
+                if (tryBuildBuilding(rc, RobotType.FULFILLMENT_CENTER, currLocation)) {
+                    builtDesignSchool = true;
+                }
+            }
+            if (!builtFulfillmentCenter) {
+                if (tryBuildBuilding(rc, RobotType.DESIGN_SCHOOL, currLocation)) {
+                    builtFulfillmentCenter = true;
+                }
+            }
+        }
+
 
         // Move.
         int soupCarrying = rc.getSoupCarrying();

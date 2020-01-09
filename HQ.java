@@ -27,9 +27,16 @@ public class HQ {
             rc.shootUnit(nearestID);
         }
 
+        // Hardcode a miner on first few rounds
+        if (rc.getRoundNum() < 1) {
+            for (Direction dir : directions) {
+                Common.tryBuild(rc, RobotType.MINER, dir);
+            }
+        }
+
         // Try every direction to build a miner
-        int MAX_MINERS = 5 + (rc.getRoundNum() / 100);
-        for (int i=0; i<directions.length; i++) {
+        int MAX_MINERS = 5 + (rc.getRoundNum() / 200);
+        for (int i = 0; i < directions.length; i++) {
             if(rc.getTeamSoup() > GameConstants.INITIAL_SOUP + RobotType.MINER.cost && miners < MAX_MINERS) {
                 if (Common.tryBuild(rc, RobotType.MINER, directions[dirBuild % directions.length])) {
                     miners++;
