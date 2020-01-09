@@ -194,15 +194,39 @@ public class Miner {
 
 
     public static boolean moveInDirection(RobotController rc, Direction dir) throws GameActionException {
+        System.out.println("ENTERING MOVE");
+
+        MapLocation currLocation = rc.getLocation();
+
         int tolerablePollution = RobotType.REFINERY.globalPollutionAmount + RobotType.REFINERY.localPollutionAdditiveEffect;
 
         // If areas of no pollution
         Direction initialSearchDirection = dir;
         for (int i = 0; i < Direction.allDirections().length; i++) {
             System.out.println("Trying direction:" + dir.toString());
-            if (rc.canMove(dir) && !rc.senseFlooding(rc.getLocation().add(dir))
-                    && rc.sensePollution(rc.getLocation().add(dir)) <= tolerablePollution) { //TODO: determine actual good value to avoid
 
+            // If the miner can see water or wall, it should try another direction
+            boolean isObstacle = false;
+
+            if (soupLocation == null) {
+                Direction left = dir.rotateLeft();
+                Direction right = dir.rotateRight();
+
+                Direction[] testDirections = {left, dir, right};
+                for (Direction searchDirection : testDirections) {
+                    MapLocation senseLocation = currLocation.add(searchDirection);
+                    while (rc.canSenseLocation(senseLocation)) {
+                        if (rc.senseFlooding(senseLocation)) { // TODO: SENSE DIRT WALLS
+                            isObstacle = true;
+                        }
+                        senseLocation = senseLocation.add(dir);
+                    }
+                }
+            }
+
+            if (rc.canMove(dir) && !rc.senseFlooding(currLocation.add(dir))
+                    && rc.sensePollution(currLocation.add(dir)) <= tolerablePollution //TODO: determine actual good value to avoid
+                    && !isObstacle) {
                 rc.move(dir);
                 break;
             } else {
@@ -223,6 +247,7 @@ public class Miner {
             }
         }
 
+        System.out.println("RETURNING FROM MOVE");
         return true;
     }
 
