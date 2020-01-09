@@ -35,34 +35,12 @@ public class Miner {
         }
 
         // Search for soup! But only if we haven't found soup
+        // If find, broadcast its location
         if (soupLocation == null) {
             int radius = Common.getRealRadius(RobotType.MINER);
-            MapLocation senseLocation = new MapLocation(currLocation.x - radius, currLocation.y - radius);
-
-            boolean searchingEast = true;
-            for (int i = 0; i < radius * 2; i++) {
-                for (int j = 0; j < radius * 2; j++) {
-                    int soupFound = 0;
-                    if (rc.canSenseLocation(senseLocation)) {
-                        soupFound = rc.senseSoup(senseLocation);
-                    }
-                    if (soupFound > 0) {
-                        Common.broadcast(rc, Common.BroadcastType.MinerFoundSoup, senseLocation.x, senseLocation.y);
-                        soupLocation = senseLocation;
-                        break;
-                    }
-
-                    if (searchingEast) {
-                        senseLocation = senseLocation.add(Direction.EAST);
-                    } else {
-                        senseLocation = senseLocation.add(Direction.WEST);
-                    }
-                }
-                if (soupLocation != null) {
-                    break;
-                }
-                senseLocation = senseLocation.add(Direction.NORTH);
-                searchingEast = !searchingEast;
+            soupLocation = Common.searchForTile(rc, currLocation, Common.SEARCH_SOUP, radius);
+            if (soupLocation != null) {
+                Common.broadcast(rc, Common.BroadcastType.MinerFoundSoup, soupLocation.x, soupLocation.y);
             }
         }
 
@@ -165,6 +143,7 @@ public class Miner {
                 }
             }
 
+            // Set soupLocation to null if soup is depleted in an area
             int distanceToSoup = currLocation.distanceSquaredTo(soupLocation);
             if (!mined && distanceToSoup <= 2) {
                 soupLocation = null;

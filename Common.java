@@ -2,7 +2,7 @@ package FirstPlayer;
 
 import battlecode.common.*;
 
-
+import java.util.Map;
 
 public class Common {
 
@@ -15,6 +15,9 @@ public class Common {
     static final int MINER_FOUND_SOUP_NUM     = 0;
     static final int MINER_FOUND_REFINERY_NUM = 1;
     static final int LANDSCAPER_WANTS_DRONE = 2;
+
+    static final int SEARCH_SOUP = 1;
+    static final int SEARCH_WATER = 2;
 
     static final int START_COST         = 15;
 
@@ -30,6 +33,53 @@ public class Common {
 
     static int getRealRadius(RobotType robotType) {
         return (int)Math.ceil(Math.sqrt(robotType.sensorRadiusSquared));
+    }
+
+    /**
+     * Searches the radius of a robot for a particular type of tile
+     * @param tile 1 -> soup; 2 -> water/flooded
+     * @param radius radius to search
+     * @return MapLocation of tile if found, null otherwise
+     */
+    static MapLocation searchForTile(RobotController rc, MapLocation currLocation, int tile, int radius) throws GameActionException {
+        MapLocation tileLocation = null;
+        MapLocation senseLocation = new MapLocation(currLocation.x - radius, currLocation.y - radius);
+
+        boolean searchingEast = true;
+        for (int i = 0; i < radius * 2; i++) {
+            for (int j = 0; j < radius * 2; j++) {
+
+                if (rc.canSenseLocation(senseLocation)) {
+
+                    if (tile == SEARCH_SOUP) {
+                        int soupFound = rc.senseSoup(senseLocation);
+                        if (soupFound > 0) {
+                            tileLocation = senseLocation;
+                            break;
+                        }
+                    } else if (tile == SEARCH_WATER) {
+                        if (rc.senseFlooding(senseLocation)) {
+                            tileLocation = senseLocation;
+                            break;
+                        }
+                    }
+                }
+
+                if (searchingEast) {
+                    senseLocation = senseLocation.add(Direction.EAST);
+                } else {
+                    senseLocation = senseLocation.add(Direction.WEST);
+                }
+            }
+
+            if (tileLocation != null) {
+                break;
+            }
+            senseLocation = senseLocation.add(Direction.NORTH);
+            searchingEast = !searchingEast;
+        }
+
+        return tileLocation;
     }
 
     /**
