@@ -10,7 +10,9 @@ public class DeliveryDrone {
 
     static MapLocation landscaperLoc = null;
     static MapLocation homeArea = null;
+    static MapLocation defHQ = null;
     static int myLandscaperID = -1;
+    static int searchSpot = 0;
 
     public static void run(RobotController rc) throws GameActionException {
 
@@ -24,7 +26,7 @@ public class DeliveryDrone {
                     landscaperLoc = new MapLocation(message[1], message[2]);
                     homeArea = new MapLocation(message[3], message[4]);
                     myLandscaperID = message[5];
-                    System.out.println("SETTING LANDSCAPER LOCATION");
+                    System.out.println("SETTING LANDSCAPER LOCATION " + myLandscaperID);
                 }
             }
         }
@@ -32,10 +34,9 @@ public class DeliveryDrone {
         if(myLandscaperID > 0 && landscaperLoc != null && homeArea != null){
             //if next to the landscaper
             if(!rc.isCurrentlyHoldingUnit()) {
-                if (rc.getLocation().isAdjacentTo(landscaperLoc)) {
-                    if (rc.canPickUpUnit(myLandscaperID)) {
-                        rc.pickUpUnit(myLandscaperID);
-                    } else { //still looking
+                 if (rc.canPickUpUnit(myLandscaperID)) {
+                     rc.pickUpUnit(myLandscaperID);
+                 }else { //still looking
                         //robot no longer there
                         if (rc.getLocation().equals(landscaperLoc)) {
                             myLandscaperID = -1;
@@ -46,14 +47,65 @@ public class DeliveryDrone {
                         moveInDirection(rc, rc.getLocation().directionTo(landscaperLoc));
                     }
                 }
-            }else{
-                //look for enemy HQ
+            else{
+                //know HQ
+                if(defHQ != null){
 
+                }
+                //look for enemy HQ
+                MapLocation spot1, spot2, spot3;
+//                if(homeArea.x >= rc.getMapWidth()/2){
+////                    spot1 = new MapLocation(rc.getMapWidth() - homeArea.x , homeArea.y);
+////                }else{
+////                    spot1 = new MapLocation(homeArea.x + rc.getMapWidth()/2, homeArea.y);
+////                }
+////                if(homeArea.y >= rc.getMapHeight()/2){
+////                    spot2 = new MapLocation(homeArea.x, rc.getMapHeight() - homeArea.y );
+////                }else{
+////                    spot2 = new MapLocation(homeArea.x, homeArea.y + rc.getMapHeight()/2);
+////                }
+                spot1 = new MapLocation(rc.getMapWidth() - homeArea.x , homeArea.y);
+                spot2 = new MapLocation(homeArea.x, rc.getMapHeight() - homeArea.y );
+                spot3 = new MapLocation(spot1.x, spot2.y);
+                MapLocation[] potentialHQ = {spot1, spot2, spot3};
+
+                if(rc.getLocation().isWithinDistanceSquared(potentialHQ[searchSpot], RobotType.LANDSCAPER.sensorRadiusSquared/2)){
+                    boolean HQFound = false;
+                    RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
+                    for (RobotInfo robot : nearbyRobots) {
+                        if (robot.getType().equals(RobotType.HQ) && robot.getTeam().equals(rc.getTeam().opponent())) {
+                            HQFound = true;
+                            System.out.println("I HAVE ENEMY HQ");
+
+                            defHQ = robot.getLocation();
+                            break;
+                        }
+                    }
+                    if(HQFound) {
+                        Direction dropDir = rc.getLocation().directionTo(defHQ);
+                        MapLocation dropLoc = rc.getLocation().add(dropDir);
+                        if(dropLoc.isWithinDistanceSquared(defHQ, RobotType.LANDSCAPER.sensorRadiusSquared/2)) {
+                            if (rc.canDropUnit(dropDir) && !rc.senseFlooding(dropLoc)) {
+                                rc.dropUnit(dropDir);
+                                myLandscaperID = -1;
+                                searchSpot = 0;
+                            }else{
+                                moveInDirection(rc, dropDir);
+                            }
+                        }
+                    }else{
+                            searchSpot++;
+                            if (searchSpot >= potentialHQ.length)
+                                searchSpot = 0;
+                    }
+                }
+                moveInDirection(rc, rc.getLocation().directionTo(potentialHQ[searchSpot]));
+                }
             }
         }
 
 
-    }
+
 
     static boolean moveInDirection(RobotController rc, Direction dir) throws GameActionException {
         System.out.println("ENTERING MOVE");
@@ -65,8 +117,8 @@ public class DeliveryDrone {
             if (rc.canMove(dir)) {
                 rc.move(dir);
             } else {
-                //if a wall is hit, try a different direction -> TODO: should also get it to back away from wall to improve search area
-                return false;
+                //if a wall is hit, try a different direction
+                dir = dir.rotateLeft();
             }
         }
         System.out.println("RETURNING FROM MOVE");

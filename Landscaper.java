@@ -55,7 +55,7 @@ public class Landscaper {
                         tryDig(rc, opponentHQDirection);
                     }
                 }
-            }else if(rc.getRoundNum()%20 == 0){
+            }else if(rc.getRoundNum()%50 - rc.getID()%10 == 0){
                 //if not, send message to get carried over
                 broadcastPickup(rc, rc.getLocation().x, rc.getLocation().y, myHQLocation.x, myHQLocation.y);
             }

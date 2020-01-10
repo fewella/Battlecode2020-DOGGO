@@ -13,7 +13,7 @@ public class HQ {
 
         // built-in NET GUN check for and shoot drones
         MapLocation myLocation = rc.getLocation();
-        RobotInfo[] nearbyEnemies = rc.senseNearbyRobots();
+        RobotInfo[] nearbyEnemies = rc.senseNearbyRobots(RobotType.HQ.sensorRadiusSquared, rc.getTeam().opponent());
         int nearestDist = 9999;
         int nearestID = -1;
         for (RobotInfo enemy : nearbyEnemies) {
