@@ -15,7 +15,7 @@ public class Landscaper {
 
     public static void run(RobotController rc) throws GameActionException {
 
-        boolean attacker = true;
+        boolean attacker = false;
         //hopefully spawn near the HQ and can save it
         if(myHQLocation == null){
             RobotInfo[] nearby = rc.senseNearbyRobots(RobotType.LANDSCAPER.sensorRadiusSquared, rc.getTeam());
@@ -72,8 +72,12 @@ public class Landscaper {
             for (Direction dir : Direction.allDirections()) {
                 if (dir != Direction.CENTER) {
                     MapLocation station = myHQLocation.add(dir);
-                    if (rc.senseRobotAtLocation(station) == null) {
-                        moveInDirection(rc, dir);
+                    Direction directionToStation = currLocation.directionTo(station);
+                    if (rc.canSenseLocation(station)) {
+                        if (rc.senseRobotAtLocation(station) == null) {
+                            System.out.println("Moving in direction: " + dir);
+                            Miner.moveInDirection(rc, directionToStation);
+                        }
                     }
                 }
             }
@@ -87,8 +91,11 @@ public class Landscaper {
 
         if (rc.getDirtCarrying() < RobotType.LANDSCAPER.dirtLimit) {
             Direction digDirection = currLocation.directionTo(myHQLocation).opposite();
-            if (rc.canDigDirt(digDirection)) {
-                rc.digDirt(digDirection);
+            Direction[] sources = {digDirection.rotateLeft(), digDirection, digDirection.rotateRight()};
+            for (Direction dir : sources) {
+                if (rc.canDigDirt(dir)) {
+                    rc.digDirt(dir);
+                }
             }
         }
 
@@ -109,12 +116,9 @@ public class Landscaper {
     }
 
     static boolean moveInDirection(RobotController rc, Direction dir) throws GameActionException {
-        System.out.println("ENTERING MOVE");
-
         MapLocation currLocation = rc.getLocation();
 
         for (int i = 0; i < Direction.allDirections().length; i++) {
-            System.out.println("Trying direction " + dir.toString());
             if (rc.canMove(dir) && !rc.senseFlooding(rc.getLocation().add(dir))) {
                 rc.move(dir);
             } else {
@@ -122,7 +126,6 @@ public class Landscaper {
                 return false;
             }
         }
-        System.out.println("RETURNING FROM MOVE");
         return true;
     }
 
