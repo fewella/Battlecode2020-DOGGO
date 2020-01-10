@@ -62,6 +62,11 @@ public class Common {
                             tileLocation = senseLocation;
                             break;
                         }
+                    } else if (tile > 100) {
+                        if(rc.canSenseRobot(tile)){
+                            tileLocation = senseLocation;
+                            break;
+                        }
                     }
                 }
 
