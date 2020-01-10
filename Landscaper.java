@@ -103,28 +103,30 @@ public class Landscaper {
                     rc.digDirt(dir);
                 }
             }
-        }
 
-        int lowestElevation = 99999;
-        Direction bestDir = null;
 
-        for (Direction dir : Direction.allDirections()) {
-            if (dir != Direction.CENTER) {
-                MapLocation station = myHQLocation.add(dir);
-                if (rc.canSenseLocation(station)) {
-                    int currElevation = rc.senseElevation(station);
-                    Direction toStation = currLocation.directionTo(station);
-                    if (currElevation < lowestElevation && rc.canDepositDirt(toStation)) {
+        } else if (rc.isReady()) {
 
-                        lowestElevation = currElevation;
-                        bestDir = toStation;
+            int lowestElevation = 99999;
+            Direction bestDir = null;
+            for (Direction dir : Direction.allDirections()) {
+                MapLocation station = currLocation.add(dir);
+                Direction dirToStation = currLocation.directionTo(station);
+                if (rc.canDepositDirt(dirToStation) && !station.equals(myHQLocation) && station.distanceSquaredTo(myHQLocation) <= 2) {
+                    int stationElevation = rc.senseElevation(station);
+                    System.out.println("station location " + station + "at elevation: " + stationElevation);
+
+                    if (stationElevation < lowestElevation) {
+                        lowestElevation = stationElevation;
+                        bestDir = dirToStation;
                     }
                 }
             }
-        }
 
-        if (rc.canDepositDirt(bestDir)) {
-            rc.depositDirt(bestDir);
+            System.out.println("depsoit in dir: " + bestDir + "at elevation: " + lowestElevation);
+            if (rc.canDepositDirt(bestDir)) {
+                rc.depositDirt(bestDir);
+            }
         }
     }
 
