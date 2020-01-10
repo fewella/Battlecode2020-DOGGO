@@ -73,53 +73,10 @@ public class Landscaper {
 
     static boolean goToHQ(RobotController rc) throws GameActionException {
         MapLocation currLocation = rc.getLocation();
-        if (currLocation.distanceSquaredTo(myHQLocation) < 2) {
-            switch (myHQLocation.directionTo(currLocation) ) {
-                case NORTHEAST:
-                    if(rc.canMove(Direction.WEST)){
-                        rc.move(Direction.WEST);
-                    }else if(rc.canMove(Direction.SOUTH)){
-                        rc.move(Direction.SOUTH);
-                    }
-                    break;
-                case NORTHWEST:
-                    if(rc.canMove(Direction.EAST)){
-                        rc.move(Direction.EAST);
-                    }else if(rc.canMove(Direction.SOUTH)){
-                        rc.move(Direction.SOUTH);
-                    }
-                    break;
-                case SOUTHWEST:
-                    if(rc.canMove(Direction.EAST)){
-                        rc.move(Direction.EAST);
-                    }else if(rc.canMove(Direction.NORTH)){
-                        rc.move(Direction.NORTH);
-                    }
-                    break;
-                case SOUTHEAST:
-                    if(rc.canMove(Direction.WEST)){
-                        rc.move(Direction.WEST);
-                    }else if(rc.canMove(Direction.NORTH)){
-                        rc.move(Direction.NORTH);
-                    }
-                    break;
-                default:
-                    return true;
-            }
-            if(rc.senseRobotAtLocation(currLocation.add(currLocation.directionTo(myHQLocation).rotateLeft())) != null){
-                if(rc.canMove(currLocation.directionTo(myHQLocation).rotateRight())) {
-                    rc.move(currLocation.directionTo(myHQLocation).rotateRight());
-                }
-            }else if(rc.senseRobotAtLocation(currLocation.add(currLocation.directionTo(myHQLocation).rotateRight())) != null) {
-                if (rc.canMove(currLocation.directionTo(myHQLocation).rotateLeft())) {
-                    rc.move(currLocation.directionTo(myHQLocation).rotateLeft());
-                }
-            }
-            return false;
-
+        if (currLocation.distanceSquaredTo(myHQLocation) <= 2) {
+            return true;
 
         } else {
-
             for (Direction dir : Direction.allDirections()) {
                 if (dir != Direction.CENTER) {
                     MapLocation station = myHQLocation.add(dir);
@@ -133,7 +90,7 @@ public class Landscaper {
                 }
             }
 
-            return currLocation.distanceSquaredTo(myHQLocation) < 2;
+            return currLocation.distanceSquaredTo(myHQLocation) <= 2;
         }
     }
 
