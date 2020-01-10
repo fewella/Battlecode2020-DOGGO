@@ -107,6 +107,7 @@ public class Landscaper {
 
         int lowestElevation = 99999;
         Direction bestDir = null;
+
         for (Direction dir : Direction.allDirections()) {
             if (dir != Direction.CENTER) {
                 MapLocation station = myHQLocation.add(dir);
@@ -114,6 +115,7 @@ public class Landscaper {
                     int currElevation = rc.senseElevation(station);
                     Direction toStation = currLocation.directionTo(station);
                     if (currElevation < lowestElevation && rc.canDepositDirt(toStation)) {
+
                         lowestElevation = currElevation;
                         bestDir = toStation;
                     }
