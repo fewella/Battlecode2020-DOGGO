@@ -2,19 +2,23 @@ package FirstPlayer;
 
 import battlecode.common.*;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Map;
+
 public class Landscaper {
 
     static MapLocation opponentHQLocation = null;
     static MapLocation myHQLocation = null;
 
-    static MapLocation waterLocation = null;
+    static boolean placed = false;
 
     public static void run(RobotController rc) throws GameActionException {
 
         boolean attacker = true;
         //hopefully spawn near the HQ and can save it
         if(myHQLocation == null){
-            RobotInfo[] nearby = rc.senseNearbyRobots(RobotType.MINER.sensorRadiusSquared, rc.getTeam());
+            RobotInfo[] nearby = rc.senseNearbyRobots(RobotType.LANDSCAPER.sensorRadiusSquared, rc.getTeam());
             for (RobotInfo curr : nearby) {
                 if (curr.getType() == RobotType.HQ) {
                     myHQLocation = curr.location;
@@ -25,10 +29,8 @@ public class Landscaper {
         }
 
         if (!attacker) { //defender, will wall the base TODO: later care about water round elevations
-            if (rc.getDirtCarrying() < RobotType.LANDSCAPER.dirtLimit) {
-                digFromFlood(rc);
-            } else {
-                depositDirt(rc);
+            if (goToHQ(rc)) {
+                holeInHQ(rc);
             }
 
         } else {
@@ -60,13 +62,38 @@ public class Landscaper {
         }
     }
 
-    static void digFromFlood(RobotController rc){
-        // Algorithm:
-        // 1. If don't have water location, find it
+    static boolean goToHQ(RobotController rc) throws GameActionException {
+        MapLocation currLocation = rc.getLocation();
+        if (currLocation.distanceSquaredTo(myHQLocation) <= 2) {
+            return true;
+
+        } else {
+            for (Direction dir : Direction.allDirections()) {
+                if (dir != Direction.CENTER) {
+                    MapLocation station = myHQLocation.add(dir);
+                    if (rc.senseRobotAtLocation(station) == null) {
+                        moveInDirection(rc, dir);
+                    }
+                }
+            }
+
+            return currLocation.distanceSquaredTo(myHQLocation) <= 2;
+        }
     }
 
-    static void depositDirt(RobotController rc) {
+    static void holeInHQ(RobotController rc) throws GameActionException {
+        MapLocation currLocation = rc.getLocation();
 
+        if (rc.getDirtCarrying() < RobotType.LANDSCAPER.dirtLimit) {
+            Direction digDirection = currLocation.directionTo(myHQLocation).opposite();
+            if (rc.canDigDirt(digDirection)) {
+                rc.digDirt(digDirection);
+            }
+        }
+
+        if (rc.canDepositDirt(Direction.CENTER)) {
+            rc.depositDirt(Direction.CENTER);
+        }
     }
 
     static boolean tryDig(RobotController rc, Direction dir) throws GameActionException {

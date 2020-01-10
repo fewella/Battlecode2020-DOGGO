@@ -5,8 +5,10 @@ import battlecode.common.*;
 public class Miner {
 
     static Direction searchDirection = null;
+
     static MapLocation refineryLocation = null;
     static MapLocation soupLocation = null;
+    static MapLocation myHQLocation = null;
 
     static boolean builtDesignSchool = false;
     static boolean builtFulfillmentCenter = false;
@@ -22,7 +24,7 @@ public class Miner {
             int[] message = transaction.getMessage();
             if (message[6] == Common.SIGNATURE) {
 
-                if (message[0] == Common.MINER_FOUND_SOUP_NUM) {
+                if (message[0] == Common.MINER_FOUND_SOUP_NUM && soupLocation == null) {
                     soupLocation = new MapLocation(message[1], message[2]);
                     System.out.println("SETTING SOUP LOCATION");
 
@@ -40,7 +42,7 @@ public class Miner {
             int radius = Common.getRealRadius(RobotType.MINER);
             soupLocation = Common.searchForTile(rc, currLocation, Common.SEARCH_SOUP, radius);
             if (soupLocation != null) {
-                Common.broadcast(rc, Common.BroadcastType.MinerFoundSoup, soupLocation.x, soupLocation.y);
+                //Common.broadcast(rc, Common.BroadcastType.MinerFoundSoup, soupLocation.x, soupLocation.y);
             }
         }
 
@@ -60,7 +62,7 @@ public class Miner {
         RobotInfo[] nearby = rc.senseNearbyRobots(RobotType.MINER.sensorRadiusSquared, rc.getTeam());
 
         // Check if refinery exists nearby
-        // While we're at it, check for fulfillment centers and design schools
+        // While we're at it, check for fulfillment centers, design schools, and HQ
         if (refineryLocation == null) {
             for (RobotInfo curr : nearby) {
                 if (curr.getType() == RobotType.REFINERY) {
@@ -78,6 +80,10 @@ public class Miner {
 
                     case FULFILLMENT_CENTER:
                         builtFulfillmentCenter = true;
+                        break;
+
+                    case HQ:
+                        myHQLocation = curr.location;
                         break;
 
                     default:
@@ -189,7 +195,7 @@ public class Miner {
         // If areas of no pollution
         Direction initialSearchDirection = dir;
         for (int i = 0; i < Direction.allDirections().length; i++) {
-            System.out.println("Trying direction:" + dir.toString());
+            // System.out.println("Trying direction:" + dir.toString());
 
             // If the miner can see water or wall, it should try another direction
             boolean isObstacle = false;
@@ -238,8 +244,12 @@ public class Miner {
 
     static boolean tryBuildBuilding(RobotController rc, RobotType building, MapLocation currLocation) throws GameActionException{
         for (Direction dir : Direction.allDirections()) {
-            boolean isSoup = rc.senseSoup(currLocation.add(dir)) > 0;
-            if (!isSoup && rc.isReady() && rc.canBuildRobot(building, dir)) {
+            MapLocation buildLocation = currLocation.add(dir);
+
+            boolean isSoup = rc.senseSoup(buildLocation) > 0;
+            boolean adjacentToHQ = buildLocation.distanceSquaredTo(myHQLocation) <= 2;
+
+            if (!isSoup && !adjacentToHQ && rc.canBuildRobot(building, dir)) {
                 rc.buildRobot(building, dir);
                 return true;
             }
