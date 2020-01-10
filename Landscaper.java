@@ -15,7 +15,7 @@ public class Landscaper {
 
     public static void run(RobotController rc) throws GameActionException {
 
-        boolean attacker = false;
+        boolean attacker = Math.random() < 0.5;
         //hopefully spawn near the HQ and can save it
         if(myHQLocation == null){
             RobotInfo[] nearby = rc.senseNearbyRobots(RobotType.LANDSCAPER.sensorRadiusSquared, rc.getTeam());
