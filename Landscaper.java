@@ -36,12 +36,13 @@ public class Landscaper {
 
         } else {
             //look to see if enemy HQ in range and dig them in
-            if(opponentHQLocation == null){
-                RobotInfo[] nearby = rc.senseNearbyRobots(RobotType.MINER.sensorRadiusSquared, rc.getTeam().opponent());
+            if(opponentHQLocation == null) {
+                RobotInfo[] nearby = rc.senseNearbyRobots(RobotType.LANDSCAPER.sensorRadiusSquared, rc.getTeam().opponent());
                 for (RobotInfo curr : nearby) {
                     if (curr.getType() == RobotType.HQ) {
                         opponentHQLocation = curr.location;
                     }
+                }
             }
             if(opponentHQLocation != null){
                 Direction opponentHQDirection = rc.getLocation().directionTo(opponentHQLocation);
@@ -55,11 +56,11 @@ public class Landscaper {
                         tryDig(rc, opponentHQDirection);
                     }
                 }
-            }else if(rc.getRoundNum()%50 - rc.getID()%10 == 0){
+            }else if(rc.getRoundNum()%20 - rc.getID()%10 == 0){
                 //if not, send message to get carried over
                 broadcastPickup(rc, rc.getLocation().x, rc.getLocation().y, myHQLocation.x, myHQLocation.y);
             }
-            }
+
         }
     }
 
@@ -122,6 +123,7 @@ public class Landscaper {
             if (rc.canMove(dir) && !rc.senseFlooding(rc.getLocation().add(dir))) {
                 rc.move(dir);
             } else {
+               // dir = dir.rotateLeft();
                 //if a wall is hit, try a different direction -> TODO: should also get it to back away from wall to improve search area
                 return false;
             }
@@ -139,8 +141,8 @@ public class Landscaper {
         message[5] = rc.getID();
         message[6] = Common.SIGNATURE;
 
-        if (rc.canSubmitTransaction(message, Common.START_COST)) {
-            rc.submitTransaction(message, Common.START_COST);
+        if (rc.canSubmitTransaction(message, Common.START_COST/2)) {
+            rc.submitTransaction(message, Common.START_COST/2);
             System.out.println("TRANSMITTING");
             return true;
         } else {
