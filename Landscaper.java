@@ -29,7 +29,8 @@ public class Landscaper {
         }
 
         if (!attacker) { //defender, will wall the base TODO: later care about water round elevations
-            if (goToHQ(rc)) {
+            placed = goToHQ(rc);
+            if (placed) {
                 holeInHQ(rc);
             }
 
