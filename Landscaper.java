@@ -11,14 +11,14 @@ public class Landscaper {
     static MapLocation opponentHQLocation = null;
     static MapLocation myHQLocation = null;
 
-    static MapLocation floodLocation = null;
+    static boolean placed = false;
 
     public static void run(RobotController rc) throws GameActionException {
 
         boolean attacker = true;
         //hopefully spawn near the HQ and can save it
         if(myHQLocation == null){
-            RobotInfo[] nearby = rc.senseNearbyRobots(RobotType.MINER.sensorRadiusSquared, rc.getTeam());
+            RobotInfo[] nearby = rc.senseNearbyRobots(RobotType.LANDSCAPER.sensorRadiusSquared, rc.getTeam());
             for (RobotInfo curr : nearby) {
                 if (curr.getType() == RobotType.HQ) {
                     myHQLocation = curr.location;
@@ -29,10 +29,8 @@ public class Landscaper {
         }
 
         if (!attacker) { //defender, will wall the base TODO: later care about water round elevations
-            if (rc.getDirtCarrying() < RobotType.LANDSCAPER.dirtLimit) {
-                digFromFlood(rc);
-            } else {
-                depositDirt(rc);
+            if (goToHQ(rc)) {
+                holeInHQ(rc);
             }
 
         } else {
@@ -64,57 +62,37 @@ public class Landscaper {
         }
     }
 
-    static void digFromFlood(RobotController rc) throws GameActionException {
-        // Algorithm:
-        // 1. If don't have water location, find it
-        //      If can't find, search
-        // 2. If have location and can't dig after trying,  go towards
-        // 3. Else, dig
+    static boolean goToHQ(RobotController rc) throws GameActionException {
         MapLocation currLocation = rc.getLocation();
+        if (currLocation.distanceSquaredTo(myHQLocation) <= 2) {
+            return true;
 
-        if (floodLocation == null) {
-            int radius = Common.getRealRadius(RobotType.LANDSCAPER);
-            floodLocation = Common.searchForTile(rc, currLocation, Common.SEARCH_FLOOD, radius);
-        }
-
-        if (floodLocation != null) {
-            int distanceToFlood = currLocation.distanceSquaredTo(floodLocation);
-            Direction toFlood = currLocation.directionTo(floodLocation);
-            if (rc.canDigDirt(toFlood) && distanceToFlood <= 2) {
-                rc.digDirt(toFlood);
-            } else {
-                for (Direction dir : Direction.allDirections()) {
-                    if (rc.canDigDirt(dir) && distanceToFlood <= 2) {
-                        rc.digDirt(toFlood);
+        } else {
+            for (Direction dir : Direction.allDirections()) {
+                if (dir != Direction.CENTER) {
+                    MapLocation station = myHQLocation.add(dir);
+                    if (rc.senseRobotAtLocation(station) == null) {
+                        moveInDirection(rc, dir);
                     }
                 }
             }
 
-            moveInDirection(rc, toFlood);
+            return currLocation.distanceSquaredTo(myHQLocation) <= 2;
         }
     }
 
-    static void depositDirt(RobotController rc) throws GameActionException {
+    static void holeInHQ(RobotController rc) throws GameActionException {
         MapLocation currLocation = rc.getLocation();
-        Direction toHQ = currLocation.directionTo(myHQLocation);
 
-        boolean deposited = false;
-
-        ArrayList<MapLocation> depositSpots = new ArrayList<>();
-        for (Direction dir : Direction.allDirections()) {
-            depositSpots.add(myHQLocation.add(dir));
-        }
-
-        for (Direction dir : Direction.allDirections()) {
-            MapLocation depositLocation = currLocation.add(dir);
-            if (depositSpots.contains(depositLocation) && rc.canDepositDirt(dir)) {
-                rc.depositDirt(dir);
-                deposited = true;
+        if (rc.getDirtCarrying() < RobotType.LANDSCAPER.dirtLimit) {
+            Direction digDirection = currLocation.directionTo(myHQLocation).opposite();
+            if (rc.canDigDirt(digDirection)) {
+                rc.digDirt(digDirection);
             }
         }
 
-        if (!deposited) {
-            moveInDirection(rc, toHQ);
+        if (rc.canDepositDirt(Direction.CENTER)) {
+            rc.depositDirt(Direction.CENTER);
         }
     }
 

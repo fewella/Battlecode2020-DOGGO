@@ -44,16 +44,19 @@ public class Common {
         MapLocation senseLocation = new MapLocation(currLocation.x - radius, currLocation.y - radius);
 
         boolean searchingEast = true;
+        int maxSoup = 0;
         for (int i = 0; i < radius * 2; i++) {
             for (int j = 0; j < radius * 2; j++) {
-
+                System.out.println("trying location: " + senseLocation);
                 if (rc.canSenseLocation(senseLocation)) {
 
                     if (tile == SEARCH_SOUP) {
                         int soupFound = rc.senseSoup(senseLocation);
-                        if (soupFound > 0) {
+                        System.out.println("soup found: " + soupFound);
+                        if (soupFound > maxSoup) {
+                            System.out.println("SETTING MAX SOUP AT " + senseLocation);
                             tileLocation = senseLocation;
-                            break;
+                            maxSoup = soupFound;
                         }
                     } else if (tile == SEARCH_FLOOD) {
                         if (rc.senseFlooding(senseLocation)) {
@@ -70,13 +73,14 @@ public class Common {
                 }
             }
 
-            if (tileLocation != null) {
+            if (tileLocation != null && tile != SEARCH_SOUP) {
                 break;
             }
             senseLocation = senseLocation.add(Direction.NORTH);
             searchingEast = !searchingEast;
         }
 
+        System.out.println("PICKED LOCATION: " + tileLocation + " WITH SOUP " + maxSoup);
         return tileLocation;
     }
 
