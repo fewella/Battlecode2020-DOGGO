@@ -15,6 +15,8 @@ public class Landscaper {
     static boolean chosen = false;
     static boolean attacker = false;
 
+    static int dir = 0;
+
     public static void run(RobotController rc) throws GameActionException {
         if (!chosen) {
             attacker = rc.getRoundNum() % 4 < 2;
@@ -71,10 +73,53 @@ public class Landscaper {
 
     static boolean goToHQ(RobotController rc) throws GameActionException {
         MapLocation currLocation = rc.getLocation();
-        if (currLocation.distanceSquaredTo(myHQLocation) <= 2) {
-            return true;
+        if (currLocation.distanceSquaredTo(myHQLocation) < 2) {
+            switch (myHQLocation.directionTo(currLocation) ) {
+                case NORTHEAST:
+                    if(rc.canMove(Direction.WEST)){
+                        rc.move(Direction.WEST);
+                    }else if(rc.canMove(Direction.SOUTH)){
+                        rc.move(Direction.SOUTH);
+                    }
+                    break;
+                case NORTHWEST:
+                    if(rc.canMove(Direction.EAST)){
+                        rc.move(Direction.EAST);
+                    }else if(rc.canMove(Direction.SOUTH)){
+                        rc.move(Direction.SOUTH);
+                    }
+                    break;
+                case SOUTHWEST:
+                    if(rc.canMove(Direction.EAST)){
+                        rc.move(Direction.EAST);
+                    }else if(rc.canMove(Direction.NORTH)){
+                        rc.move(Direction.NORTH);
+                    }
+                    break;
+                case SOUTHEAST:
+                    if(rc.canMove(Direction.WEST)){
+                        rc.move(Direction.WEST);
+                    }else if(rc.canMove(Direction.NORTH)){
+                        rc.move(Direction.NORTH);
+                    }
+                    break;
+                default:
+                    return true;
+            }
+            if(rc.senseRobotAtLocation(currLocation.add(currLocation.directionTo(myHQLocation).rotateLeft())) != null){
+                if(rc.canMove(currLocation.directionTo(myHQLocation).rotateRight())) {
+                    rc.move(currLocation.directionTo(myHQLocation).rotateRight());
+                }
+            }else if(rc.senseRobotAtLocation(currLocation.add(currLocation.directionTo(myHQLocation).rotateRight())) != null) {
+                if (rc.canMove(currLocation.directionTo(myHQLocation).rotateLeft())) {
+                    rc.move(currLocation.directionTo(myHQLocation).rotateLeft());
+                }
+            }
+            return false;
+
 
         } else {
+
             for (Direction dir : Direction.allDirections()) {
                 if (dir != Direction.CENTER) {
                     MapLocation station = myHQLocation.add(dir);
@@ -88,7 +133,7 @@ public class Landscaper {
                 }
             }
 
-            return currLocation.distanceSquaredTo(myHQLocation) <= 2;
+            return currLocation.distanceSquaredTo(myHQLocation) < 2;
         }
     }
 
@@ -103,29 +148,21 @@ public class Landscaper {
                     rc.digDirt(dir);
                 }
             }
-        }
-
-        int lowestElevation = 99999;
-        Direction bestDir = null;
-
-        for (Direction dir : Direction.allDirections()) {
-            if (dir != Direction.CENTER) {
-                MapLocation station = myHQLocation.add(dir);
-                if (rc.canSenseLocation(station)) {
-                    int currElevation = rc.senseElevation(station);
-                    Direction toStation = currLocation.directionTo(station);
-                    if (currElevation < lowestElevation && rc.canDepositDirt(toStation)) {
-
-                        lowestElevation = currElevation;
-                        bestDir = toStation;
-                    }
+        }else{
+            Direction myHQDir = currLocation.directionTo(myHQLocation);
+            Direction[] depositDirections = {myHQDir.rotateRight(), myHQDir.rotateRight().rotateRight(),
+                                                Direction.CENTER, myHQDir.rotateLeft(), myHQDir.rotateLeft().rotateLeft()};
+            for(Direction d : depositDirections) {
+                if (rc.canDepositDirt(depositDirections[dir % depositDirections.length])) {
+                    rc.depositDirt(depositDirections[dir % depositDirections.length]);
+                } else {
+                    dir++;
                 }
             }
         }
 
-        if (rc.canDepositDirt(bestDir)) {
-            rc.depositDirt(bestDir);
-        }
+
+
     }
 
     static boolean tryDig(RobotController rc, Direction dir) throws GameActionException {
