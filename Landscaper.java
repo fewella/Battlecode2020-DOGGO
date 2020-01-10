@@ -148,21 +148,29 @@ public class Landscaper {
                     rc.digDirt(dir);
                 }
             }
-        }else{
-            Direction myHQDir = currLocation.directionTo(myHQLocation);
-            Direction[] depositDirections = {myHQDir.rotateRight(), myHQDir.rotateRight().rotateRight(),
-                                                Direction.CENTER, myHQDir.rotateLeft(), myHQDir.rotateLeft().rotateLeft()};
-            for(Direction d : depositDirections) {
-                if (rc.canDepositDirt(depositDirections[dir % depositDirections.length])) {
-                    rc.depositDirt(depositDirections[dir % depositDirections.length]);
-                } else {
-                    dir++;
+        } else if (rc.isReady()) {
+
+            int lowestElevation = 99999;
+            Direction bestDir = null;
+            for (Direction dir : Direction.allDirections()) {
+                MapLocation station = currLocation.add(dir);
+                Direction dirToStation = currLocation.directionTo(station);
+                if (rc.canDepositDirt(dirToStation) && !station.equals(myHQLocation) && station.distanceSquaredTo(myHQLocation) <= 2) {
+                    int stationElevation = rc.senseElevation(station);
+                    System.out.println("station location " + station + "at elevation: " + stationElevation);
+
+                    if (stationElevation < lowestElevation) {
+                        lowestElevation = stationElevation;
+                        bestDir = dirToStation;
+                    }
                 }
             }
+
+            System.out.println("depsoit in dir: " + bestDir + "at elevation: " + lowestElevation);
+            if (rc.canDepositDirt(bestDir)) {
+                rc.depositDirt(bestDir);
+            }
         }
-
-
-
     }
 
     static boolean tryDig(RobotController rc, Direction dir) throws GameActionException {
