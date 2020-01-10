@@ -2,9 +2,8 @@ package FirstPlayer;
 
 import battlecode.common.*;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.Random;
 
 public class Landscaper {
 
@@ -13,9 +12,15 @@ public class Landscaper {
 
     static boolean placed = false;
 
-    static boolean attacker = Math.random() < 0.5;
+    static boolean chosen = false;
+    static boolean attacker = false;
 
     public static void run(RobotController rc) throws GameActionException {
+        if (!chosen) {
+            attacker = rc.getRoundNum() % 4 < 2;
+            chosen = true;
+        }
+
         //hopefully spawn near the HQ and can save it
         if(myHQLocation == null){
             RobotInfo[] nearby = rc.senseNearbyRobots(RobotType.LANDSCAPER.sensorRadiusSquared, rc.getTeam());
@@ -100,8 +105,24 @@ public class Landscaper {
             }
         }
 
-        if (rc.canDepositDirt(Direction.CENTER)) {
-            rc.depositDirt(Direction.CENTER);
+        int lowestElevation = 99999;
+        Direction bestDir = null;
+        for (Direction dir : Direction.allDirections()) {
+            if (dir != Direction.CENTER) {
+                MapLocation station = myHQLocation.add(dir);
+                if (rc.canSenseLocation(station)) {
+                    int currElevation = rc.senseElevation(station);
+                    Direction toStation = currLocation.directionTo(station);
+                    if (currElevation < lowestElevation && rc.canDepositDirt(toStation)) {
+                        lowestElevation = currElevation;
+                        bestDir = toStation;
+                    }
+                }
+            }
+        }
+
+        if (rc.canDepositDirt(bestDir)) {
+            rc.depositDirt(bestDir);
         }
     }
 

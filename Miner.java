@@ -6,7 +6,6 @@ public class Miner {
 
     static Direction searchDirection = null;
 
-    static MapLocation refineryLocation = null;
     static MapLocation soupLocation = null;
     static MapLocation myHQLocation = null;
 
@@ -27,11 +26,6 @@ public class Miner {
                 if (message[0] == Common.MINER_FOUND_SOUP_NUM && soupLocation == null) {
                     soupLocation = new MapLocation(message[1], message[2]);
                     System.out.println("SETTING SOUP LOCATION");
-
-                } else if (message[0] == Common.MINER_FOUND_REFINERY_NUM) {
-                    refineryLocation = new MapLocation(message[1], message[2]);
-                    System.out.println("SETTING REFINERY LOCATION");
-
                 }
             }
         }
@@ -63,60 +57,38 @@ public class Miner {
 
         // Check if refinery exists nearby
         // While we're at it, check for fulfillment centers, design schools, and HQ
-        if (refineryLocation == null) {
-            for (RobotInfo curr : nearby) {
-                if (curr.getType() == RobotType.REFINERY) {
-                    refineryLocation = curr.location;
-                }
 
-                switch (curr.getType()) {
-                    case REFINERY:
-                        refineryLocation = curr.location;
-                        break;
+        for (RobotInfo curr : nearby) {
+            switch (curr.getType()) {
+                case DESIGN_SCHOOL:
+                    builtDesignSchool = true;
+                    break;
 
-                    case DESIGN_SCHOOL:
-                        builtDesignSchool = true;
-                        break;
+                case FULFILLMENT_CENTER:
+                    builtFulfillmentCenter = true;
+                    break;
 
-                    case FULFILLMENT_CENTER:
-                        builtFulfillmentCenter = true;
-                        break;
+                case HQ:
+                    myHQLocation = curr.location;
+                    break;
 
-                    case HQ:
-                        myHQLocation = curr.location;
-                        break;
-
-                    default:
-                        break;
-                }
+                default:
+                    break;
             }
         }
 
-        // Build refinery if can and broadcast the location
-        if(refineryLocation == null && soupLocation != null) {
-            for (Direction dir : Direction.allDirections()) {
-                if(Common.tryBuild(rc, RobotType.REFINERY, dir))
-                {
-                    refineryLocation = currLocation.add(dir);
-                    Common.broadcast(rc, Common.BroadcastType.MinerBuiltRefinery, refineryLocation.x, refineryLocation.y);
-                }
-            }
-        }
 
         // Build fulfillment center or design school if able
-        if (refineryLocation != null) { // Make sure refinery already exists
-            if (!builtDesignSchool) {
-                if (tryBuildBuilding(rc, RobotType.FULFILLMENT_CENTER, currLocation)) {
-                    builtDesignSchool = true;
-                }
-            }
-            if (!builtFulfillmentCenter) {
-                if (tryBuildBuilding(rc, RobotType.DESIGN_SCHOOL, currLocation)) {
-                    builtFulfillmentCenter = true;
-                }
+        if (!builtDesignSchool) {
+            if (tryBuildBuilding(rc, RobotType.DESIGN_SCHOOL, currLocation)) {
+                builtDesignSchool = true;
             }
         }
-
+        if (!builtFulfillmentCenter) {
+            if (tryBuildBuilding(rc, RobotType.FULFILLMENT_CENTER, currLocation)) {
+                builtFulfillmentCenter = true;
+            }
+        }
 
         // Move.
         int soupCarrying = rc.getSoupCarrying();
@@ -157,7 +129,7 @@ public class Miner {
 
             moveInDirection(rc, toSoup);
 
-        } else if (!haveSpace && refineryLocation != null) {
+        } else if (!haveSpace && myHQLocation != null) {
             // GO BACK TO REFINERY
 
             // Algorithm:
@@ -165,7 +137,7 @@ public class Miner {
             // 2. If fails, check remaining directions to be safe
             // 3. Else, move towards refinery
 
-            Direction toRefinery = currLocation.directionTo(refineryLocation);
+            Direction toRefinery = currLocation.directionTo(myHQLocation);
             if (rc.canDepositSoup(toRefinery)) {
                 rc.depositSoup(toRefinery, soupCarrying);
             } else {
