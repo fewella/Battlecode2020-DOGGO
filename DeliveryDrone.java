@@ -52,18 +52,22 @@ public class DeliveryDrone {
             else{ //carrying landscaper
                 //if know enemy hq
                 if(defHQ != null){
-                    Direction dropDir = rc.getLocation().directionTo(defHQ);
-                    MapLocation dropLoc = rc.getLocation().add(dropDir);
-                    if (dropLoc.isWithinDistanceSquared(defHQ, 2)) {
-                        if (rc.canDropUnit(dropDir) && !rc.senseFlooding(dropLoc)) {
-                            rc.dropUnit(dropDir);
-                            myLandscaperID = -1;
-                            searchSpot = 0;
-                        }
-                    }else {
+                    Direction dropDirInit = rc.getLocation().directionTo(defHQ);
+                    Direction[] dropDirs = {dropDirInit, dropDirInit.rotateLeft(), dropDirInit.rotateRight()};
+                    for(Direction dropDir: dropDirs) {
+                        MapLocation dropLoc = rc.getLocation().add(dropDir);
+                        if (dropLoc.isWithinDistanceSquared(defHQ, 2)) {
+                            if (rc.canDropUnit(dropDir) && !rc.senseFlooding(dropLoc)) {
+                                rc.dropUnit(dropDir);
+                                myLandscaperID = -1;
+                                searchSpot = 0;
+                            } else {
+                                moveInDirection(rc, dropDir.rotateLeft().rotateLeft());
+                            }
+                        } else {
                             moveInDirection(rc, dropDir);
                         }
-
+                    }
 
                 }else{
                     //look for enemy HQ
