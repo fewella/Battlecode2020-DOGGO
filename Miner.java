@@ -46,7 +46,11 @@ public class Miner {
         // First, determine if I need to go back to HQ
         if (goingBackToHQ) {
             System.out.println("GOING BACK TO HQ");
-            moveInDirection(rc, currLocation.directionTo(myHQLocation));
+            if (designSchoolTooFar(currLocation)) {
+                moveInDirection(rc, currLocation.directionTo(myHQLocation));
+            } else {
+                goingBackToHQ = false;
+            }
         }
 
         // Now, determine which direction to move if I haven't yet
