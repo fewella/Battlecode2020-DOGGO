@@ -112,7 +112,11 @@ public class Landscaper {
                 }
             }
 
-            Miner.moveInDirection(rc, currLocation.directionTo(closestStation));
+            if (closestStation != null) {
+                Miner.moveInDirection(rc, currLocation.directionTo(closestStation));
+            } else {
+                Miner.moveInDirection(rc, currLocation.directionTo(myHQLocation));
+            }
 
             return currLocation.distanceSquaredTo(myHQLocation) <= 2;
         }
