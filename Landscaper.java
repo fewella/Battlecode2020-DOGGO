@@ -34,11 +34,8 @@ public class Landscaper {
             }
 
             // If STILL can't see, address accordingly:
-            if (!attacker) {
-                searchForHQ(rc);
-            } else {
-                myHQLocation = rc.getLocation();
-            }
+
+            searchForHQ(rc);
         }
 
         if (!attacker) {
