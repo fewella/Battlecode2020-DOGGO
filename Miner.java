@@ -198,7 +198,9 @@ public class Miner {
                 for (Direction searchDirection : testDirections) {
                     MapLocation senseLocation = currLocation.add(searchDirection);
                     while (rc.canSenseLocation(senseLocation)) {
-                        if (rc.senseFlooding(senseLocation)) { // TODO: SENSE DIRT WALLS
+                        if (rc.senseFlooding(senseLocation) ||
+                                rc.senseElevation(senseLocation) - rc.senseElevation(rc.getLocation()) >= 3
+                        || rc.senseElevation(senseLocation) - rc.senseElevation(rc.getLocation()) <= 3) {
                             isObstacle = true;
                         }
                         senseLocation = senseLocation.add(dir);
