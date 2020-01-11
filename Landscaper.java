@@ -2,6 +2,9 @@ package FirstPlayer;
 
 import battlecode.common.*;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class Landscaper {
 
     static MapLocation opponentHQLocation = null;
@@ -124,6 +127,34 @@ public class Landscaper {
 
     static void holeInHQ(RobotController rc) throws GameActionException {
         MapLocation currLocation = rc.getLocation();
+
+        // Before holing in, let's check whether we can scoot around to hit all stations
+        Direction[] diagonalsArray = {Direction.NORTHEAST, Direction.NORTHWEST, Direction.SOUTHWEST, Direction.SOUTHEAST};
+        List<Direction> diagonals = Arrays.asList(diagonalsArray);
+
+        Direction fromHQ = myHQLocation.directionTo(currLocation);
+        System.out.println("FromHQ: " + fromHQ);
+        if (diagonals.contains(fromHQ)) {
+            MapLocation rightLocation = myHQLocation.add(fromHQ.rotateRight());
+            MapLocation leftLocation = myHQLocation.add(fromHQ.rotateLeft());
+
+            if (rc.canSenseLocation(rightLocation)) {
+                if (rc.senseRobotAtLocation(rightLocation) == null);
+                Direction rightDir = currLocation.directionTo(rightLocation);
+                if (rc.canMove(rightDir)) {
+                    rc.move(rightDir);
+                }
+            }
+
+            if (rc.canSenseLocation(leftLocation)) {
+                if (rc.senseRobotAtLocation(leftLocation) == null) {
+                    Direction leftDir = currLocation.directionTo(leftLocation);
+                    if (rc.canMove(leftDir)) {
+                        rc.move(leftDir);
+                    }
+                }
+            }
+        }
 
         if (rc.getDirtCarrying() < RobotType.LANDSCAPER.dirtLimit) {
             Direction digDirection = currLocation.directionTo(myHQLocation).opposite();
