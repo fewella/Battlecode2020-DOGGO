@@ -61,13 +61,13 @@ public class Landscaper {
             if(opponentHQLocation != null){
                 Direction opponentHQDirection = rc.getLocation().directionTo(opponentHQLocation);
                 if(rc.getLocation().isAdjacentTo(opponentHQLocation)){
-                    tryDig(rc, opponentHQDirection.opposite());
+                    tryBury(rc, opponentHQDirection);
                 }
                 else{
                     //either wall in the way, or not right next to HQ
                     if(moveInDirection(rc, opponentHQDirection)){}
                     else{
-                        tryDig(rc, opponentHQDirection);
+                        tryDig(rc, opponentHQDirection); //take away wall and put under self
                     }
                 }
             }else if(rc.getRoundNum()%20 - rc.getID()%10 == 0){
@@ -168,12 +168,23 @@ public class Landscaper {
         }
     }
 
+    static boolean tryBury(RobotController rc, Direction dir) throws GameActionException {
+        if(rc.canDigDirt(Direction.CENTER)){
+            rc.digDirt(Direction.CENTER); //dig under landscaper
+            return true;
+        }else if(rc.canDepositDirt(dir)){
+            rc.depositDirt(dir);
+            return false;
+        }
+        return false;
+    }
+
     static boolean tryDig(RobotController rc, Direction dir) throws GameActionException {
         if(rc.canDigDirt(dir)){
             rc.digDirt(dir);
             return true;
-        }else if(rc.canDepositDirt(dir.opposite())){
-            rc.depositDirt(dir.opposite());
+        }else if(rc.canDepositDirt(Direction.CENTER)){
+            rc.depositDirt(Direction.CENTER);
             return false;
         }
         return false;

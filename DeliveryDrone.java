@@ -31,11 +31,13 @@ public class DeliveryDrone {
             }
         }
 
+        //fetch a landscaper
         if(myLandscaperID > 0 && landscaperLoc != null && homeArea != null){
             //if next to the landscaper
             if(!rc.isCurrentlyHoldingUnit()) {
                  if (rc.canPickUpUnit(myLandscaperID)) {
                      rc.pickUpUnit(myLandscaperID);
+                     searchSpot = (int)(Math.random()*3); //randomize
                  }else { //still looking
                         //robot no longer there
                         if (rc.getLocation().equals(landscaperLoc)) {
@@ -47,59 +49,49 @@ public class DeliveryDrone {
                         moveInDirection(rc, rc.getLocation().directionTo(landscaperLoc));
                     }
                 }
-            else{
-                //know HQ
+            else{ //carrying landscaper
+                //if know enemy hq
                 if(defHQ != null){
+                    moveInDirection(rc, rc.getLocation().directionTo(defHQ));
 
-                }
-                //look for enemy HQ
-                MapLocation spot1, spot2, spot3;
-//                if(homeArea.x >= rc.getMapWidth()/2){
-////                    spot1 = new MapLocation(rc.getMapWidth() - homeArea.x , homeArea.y);
-////                }else{
-////                    spot1 = new MapLocation(homeArea.x + rc.getMapWidth()/2, homeArea.y);
-////                }
-////                if(homeArea.y >= rc.getMapHeight()/2){
-////                    spot2 = new MapLocation(homeArea.x, rc.getMapHeight() - homeArea.y );
-////                }else{
-////                    spot2 = new MapLocation(homeArea.x, homeArea.y + rc.getMapHeight()/2);
-////                }
-                spot1 = new MapLocation(rc.getMapWidth() - homeArea.x , homeArea.y);
-                spot2 = new MapLocation(homeArea.x, rc.getMapHeight() - homeArea.y );
-                spot3 = new MapLocation(spot1.x, spot2.y);
-                MapLocation[] potentialHQ = {spot1, spot2, spot3};
-
-                if(rc.getLocation().isWithinDistanceSquared(potentialHQ[searchSpot], RobotType.LANDSCAPER.sensorRadiusSquared/2)){
-                    boolean HQFound = false;
-                    RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
-                    for (RobotInfo robot : nearbyRobots) {
-                        if (robot.getType().equals(RobotType.HQ) && robot.getTeam().equals(rc.getTeam().opponent())) {
-                            HQFound = true;
-                            System.out.println("I HAVE ENEMY HQ");
-
-                            defHQ = robot.getLocation();
-                            break;
-                        }
-                    }
-                    if(HQFound) {
-                        Direction dropDir = rc.getLocation().directionTo(defHQ);
-                        MapLocation dropLoc = rc.getLocation().add(dropDir);
-                        if(dropLoc.isWithinDistanceSquared(defHQ, RobotType.LANDSCAPER.sensorRadiusSquared/2)) {
-                            if (rc.canDropUnit(dropDir) && !rc.senseFlooding(dropLoc)) {
-                                rc.dropUnit(dropDir);
-                                myLandscaperID = -1;
-                                searchSpot = 0;
-                            }else{
-                                moveInDirection(rc, dropDir);
+                }else{
+                    //look for enemy HQ
+                    MapLocation spot1, spot2, spot3;
+                    spot1 = new MapLocation(rc.getMapWidth() - homeArea.x, homeArea.y);
+                    spot2 = new MapLocation(homeArea.x, rc.getMapHeight() - homeArea.y);
+                    spot3 = new MapLocation(spot1.x, spot2.y);
+                    MapLocation[] potentialHQ = {spot1, spot2, spot3};
+                    if (rc.getLocation().isWithinDistanceSquared(potentialHQ[searchSpot], RobotType.LANDSCAPER.sensorRadiusSquared / 2)) {
+                        boolean HQFound = false;
+                        RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
+                        for (RobotInfo robot : nearbyRobots) {
+                            if (robot.getType().equals(RobotType.HQ) && robot.getTeam().equals(rc.getTeam().opponent())) {
+                                HQFound = true;
+                                System.out.println("I HAVE ENEMY HQ");
+                                defHQ = robot.getLocation();
+                                break;
                             }
                         }
-                    }else{
+                        if (HQFound) {
+                            Direction dropDir = rc.getLocation().directionTo(defHQ);
+                            MapLocation dropLoc = rc.getLocation().add(dropDir);
+                            if (dropLoc.isWithinDistanceSquared(defHQ, RobotType.LANDSCAPER.sensorRadiusSquared / 2)) {
+                                if (rc.canDropUnit(dropDir) && !rc.senseFlooding(dropLoc)) {
+                                    rc.dropUnit(dropDir);
+                                    myLandscaperID = -1;
+                                    searchSpot = 0;
+                                } else {
+                                    moveInDirection(rc, dropDir);
+                                }
+                            }
+                        } else {
                             searchSpot++;
                             if (searchSpot >= potentialHQ.length)
                                 searchSpot = 0;
+                        }
                     }
+                    moveInDirection(rc, rc.getLocation().directionTo(potentialHQ[searchSpot]));
                 }
-                moveInDirection(rc, rc.getLocation().directionTo(potentialHQ[searchSpot]));
                 }
             }
         }
