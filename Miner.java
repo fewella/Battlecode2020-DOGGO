@@ -12,6 +12,8 @@ public class Miner {
     static boolean builtDesignSchool = false;
     static boolean builtFulfillmentCenter = false;
 
+    static boolean goingBackToHQ = false;
+
     public static void run(RobotController rc) throws GameActionException {
         MapLocation currLocation = rc.getLocation();
         int currSoup = rc.getTeamSoup();
@@ -41,7 +43,17 @@ public class Miner {
         }
 
         // Logic for moving!
-        // Determine which direction to move if I haven't yet
+        // First, determine if I need to go back to HQ
+        if (goingBackToHQ) {
+            System.out.println("GOING BACK TO HQ");
+            if (designSchoolTooFar(currLocation)) {
+                moveInDirection(rc, currLocation.directionTo(myHQLocation));
+            } else {
+                goingBackToHQ = false;
+            }
+        }
+
+        // Now, determine which direction to move if I haven't yet
         if (searchDirection == null) {
             RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
             for (RobotInfo robot : nearbyRobots) {
@@ -80,12 +92,18 @@ public class Miner {
 
         // Build fulfillment center or design school if able
         if (!builtDesignSchool) {
-            if (tryBuildBuilding(rc, RobotType.DESIGN_SCHOOL, currLocation)) {
-                builtDesignSchool = true;
+            if (tryBuildBuilding(rc, RobotType.DESIGN_SCHOOL, currLocation, false)) {
+                if (designSchoolTooFar(currLocation)) {
+                    goingBackToHQ = true;
+                } else {
+                    if (tryBuildBuilding(rc, RobotType.DESIGN_SCHOOL, currLocation, true)) {
+                        builtDesignSchool = true;
+                    }
+                }
             }
         }
         if (!builtFulfillmentCenter) {
-            if (tryBuildBuilding(rc, RobotType.FULFILLMENT_CENTER, currLocation)) {
+            if (tryBuildBuilding(rc, RobotType.FULFILLMENT_CENTER, currLocation, true)) {
                 builtFulfillmentCenter = true;
             }
         }
@@ -214,7 +232,15 @@ public class Miner {
         return true;
     }
 
-    static boolean tryBuildBuilding(RobotController rc, RobotType building, MapLocation currLocation) throws GameActionException{
+    /**
+     *
+     * @param rc RobotController
+     * @param building Type of building to build
+     * @param currLocation Current location of robot trying to build
+     * @param build whether or not to actually build the building, or just determine whether CAN build
+     * @return whether build can be or was built
+     */
+    static boolean tryBuildBuilding(RobotController rc, RobotType building, MapLocation currLocation, boolean build) throws GameActionException {
         for (Direction dir : Direction.allDirections()) {
             MapLocation buildLocation = currLocation.add(dir);
 
@@ -222,13 +248,26 @@ public class Miner {
             boolean adjacentToHQ = buildLocation.distanceSquaredTo(myHQLocation) <= 2;
 
             if (!isSoup && !adjacentToHQ && rc.canBuildRobot(building, dir)) {
-                rc.buildRobot(building, dir);
+                if (build) {
+                    rc.buildRobot(building, dir);
+                }
                 return true;
             }
         }
 
         return false;
     }
+
+    /**
+     * @param currLocation Location of miner
+     * @return whether a landscaper is 100% for sure able to see the HQ
+     */
+    static boolean designSchoolTooFar(MapLocation currLocation) {
+        Direction oppositeHQ = currLocation.directionTo(myHQLocation).opposite();
+        MapLocation farthestBuild = currLocation.add(oppositeHQ);
+        return (!farthestBuild.isWithinDistanceSquared(myHQLocation, RobotType.LANDSCAPER.sensorRadiusSquared));
+    }
+
 }
 
 
