@@ -1,15 +1,20 @@
 package FirstPlayer;
 
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.RobotController;
-import battlecode.common.RobotType;
+import battlecode.common.*;
 
 public class FulfillmentCenter {
     public static void run(RobotController rc) throws GameActionException {
-        if(rc.getTeamSoup()/2 > RobotType.DELIVERY_DRONE.cost && rc.getRoundNum()%2 == 1) {
-            for (Direction dir : Direction.allDirections()) {
-                Common.tryBuild(rc, RobotType.DELIVERY_DRONE, dir);
+
+        // Check PREVIOUS TURN chain, check for landscaper wanting drone
+        Transaction[] transactions = rc.getBlock(rc.getRoundNum() - 1);
+        for (Transaction transaction : transactions) {
+            int[] message = transaction.getMessage();
+            if (message[6] == Common.SIGNATURE && message[0] == Common.LANDSCAPER_WANTS_DRONE) {
+                if(rc.getTeamSoup() > RobotType.DELIVERY_DRONE.cost) {
+                    for (Direction dir : Direction.allDirections()) {
+                        Common.tryBuild(rc, RobotType.DELIVERY_DRONE, dir);
+                    }
+                }
             }
         }
 

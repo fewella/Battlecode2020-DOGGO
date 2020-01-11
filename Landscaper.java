@@ -67,7 +67,7 @@ public class Landscaper {
                         tryDig(rc, opponentHQDirection); //take away wall and put under self
                     }
                 }
-            }else if(rc.getRoundNum()%20 - rc.getID()%10 == 0){
+            }else if(rc.getRoundNum()%20 - rc.getID()%10 < 2){
                 //if not, send message to get carried over
                 broadcastPickup(rc, rc.getLocation().x, rc.getLocation().y, myHQLocation.x, myHQLocation.y);
             }
