@@ -37,7 +37,7 @@ public class DeliveryDrone {
             if(!rc.isCurrentlyHoldingUnit()) {
                  if (rc.canPickUpUnit(myLandscaperID)) {
                      rc.pickUpUnit(myLandscaperID);
-                     searchSpot = (int)(Math.random()*3); //randomize
+                     searchSpot = rc.getRoundNum()%3; //randomize
                  }else { //still looking
                         //robot no longer there
                         if (rc.getLocation().equals(landscaperLoc)) {
