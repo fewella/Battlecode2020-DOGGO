@@ -193,6 +193,7 @@ public class Landscaper {
         for (int i = 0; i < Direction.allDirections().length; i++) {
             if (rc.canMove(dir) && !rc.senseFlooding(currLocation.add(dir))) {
                 rc.move(dir);
+                return true;
             } else {
                // dir = dir.rotateLeft();
                 //if a wall is hit, try a different direction -> TODO: should also get it to back away from wall to improve search area

@@ -59,10 +59,11 @@ public class DeliveryDrone {
                             rc.dropUnit(dropDir);
                             myLandscaperID = -1;
                             searchSpot = 0;
-                        } else {
+                        }
+                    }else {
                             moveInDirection(rc, dropDir);
                         }
-                    }
+
 
                 }else{
                     //look for enemy HQ
