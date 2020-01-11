@@ -19,8 +19,8 @@ public class Landscaper {
 
     public static void run(RobotController rc) throws GameActionException {
         if (!chosen) {
-            //attacker = rc.getRoundNum() % 4 < 2;
-            attacker = false;
+            attacker = rc.getRoundNum() % 4 < 2;
+            //attacker = false;
             chosen = true;
         }
 
