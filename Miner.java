@@ -245,7 +245,7 @@ public class Miner {
             MapLocation buildLocation = currLocation.add(dir);
 
             boolean isSoup = rc.senseSoup(buildLocation) > 0;
-            boolean adjacentToHQ = buildLocation.distanceSquaredTo(myHQLocation) <= 9;
+            boolean adjacentToHQ = buildLocation.distanceSquaredTo(myHQLocation) < 9;
 
             if (!isSoup && !adjacentToHQ && rc.canBuildRobot(building, dir)) {
                 if (build) {
