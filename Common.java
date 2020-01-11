@@ -47,14 +47,11 @@ public class Common {
         int maxSoup = 0;
         for (int i = 0; i < radius * 2; i++) {
             for (int j = 0; j < radius * 2; j++) {
-                System.out.println("trying location: " + senseLocation);
                 if (rc.canSenseLocation(senseLocation)) {
 
                     if (tile == SEARCH_SOUP) {
                         int soupFound = rc.senseSoup(senseLocation);
-                        System.out.println("soup found: " + soupFound);
                         if (soupFound > maxSoup) {
-                            System.out.println("SETTING MAX SOUP AT " + senseLocation);
                             tileLocation = senseLocation;
                             maxSoup = soupFound;
                         }
@@ -85,7 +82,6 @@ public class Common {
             searchingEast = !searchingEast;
         }
 
-        System.out.println("PICKED LOCATION: " + tileLocation + " WITH SOUP " + maxSoup);
         return tileLocation;
     }
 
@@ -112,7 +108,7 @@ public class Common {
                 //message[4] = //TODO transmit HQ coords
 
             default:
-                message[-1] = -1;
+                message[0] = -1;
                 break;
         }
 

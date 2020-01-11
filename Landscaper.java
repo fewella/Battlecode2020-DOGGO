@@ -2,9 +2,6 @@ package FirstPlayer;
 
 import battlecode.common.*;
 
-import java.util.ArrayList;
-import java.util.Random;
-
 public class Landscaper {
 
     static MapLocation opponentHQLocation = null;
@@ -15,15 +12,19 @@ public class Landscaper {
     static boolean chosen = false;
     static boolean attacker = false;
 
-    static int dir = 0;
+    static Direction searchDirection = Direction.WEST;
+
+    static int toTravel = Common.getRealRadius(RobotType.LANDSCAPER);
+    static int travelled = toTravel / 2;
 
     public static void run(RobotController rc) throws GameActionException {
         if (!chosen) {
-            attacker = rc.getRoundNum() % 4 < 2;
+            //attacker = rc.getRoundNum() % 4 < 2;
+            attacker = false;
             chosen = true;
         }
 
-        //hopefully spawn near the HQ and can save it
+        // Look for HQ if don't have its location
         if(myHQLocation == null){
             RobotInfo[] nearby = rc.senseNearbyRobots(RobotType.LANDSCAPER.sensorRadiusSquared, rc.getTeam());
             for (RobotInfo curr : nearby) {
@@ -31,11 +32,17 @@ public class Landscaper {
                     myHQLocation = curr.location;
                 }
             }
-        }if(myHQLocation == null){
-            myHQLocation = rc.getLocation();
+
+            // If STILL can't see, address accordingly:
+            if (!attacker) {
+                searchForHQ(rc);
+            } else {
+                myHQLocation = rc.getLocation();
+            }
         }
 
-        if (!attacker) { //defender, will wall the base TODO: later care about water round elevations
+        if (!attacker) {
+            //defender, will wall the base TODO: later care about water round elevations
             placed = goToHQ(rc);
             if (placed) {
                 holeInHQ(rc);
@@ -71,24 +78,44 @@ public class Landscaper {
         }
     }
 
+    static void searchForHQ(RobotController rc) throws GameActionException {
+        if (travelled < toTravel) {
+            if (Miner.moveInDirection(rc, searchDirection)) {
+                travelled++;
+            }
+        } else {
+            searchDirection.rotateLeft();
+            searchDirection.rotateLeft();
+            Miner.moveInDirection(rc, searchDirection);
+            travelled = 0;
+        }
+    }
+
     static boolean goToHQ(RobotController rc) throws GameActionException {
         MapLocation currLocation = rc.getLocation();
         if (currLocation.distanceSquaredTo(myHQLocation) <= 2) {
             return true;
 
         } else {
+            int closestDistance = 9999;
+            MapLocation closestStation = null;
             for (Direction dir : Direction.allDirections()) {
                 if (dir != Direction.CENTER) {
+
                     MapLocation station = myHQLocation.add(dir);
-                    Direction directionToStation = currLocation.directionTo(station);
+                    //Direction directionToStation = currLocation.directionTo(station);
+                    int distanceSquaredToStation = currLocation.distanceSquaredTo(station);
+
                     if (rc.canSenseLocation(station)) {
-                        if (rc.senseRobotAtLocation(station) == null) {
-                            System.out.println("Moving in direction: " + dir);
-                            Miner.moveInDirection(rc, directionToStation);
+                        if (rc.senseRobotAtLocation(station) == null && distanceSquaredToStation < closestDistance) {
+                            closestDistance = distanceSquaredToStation;
+                            closestStation = station;
                         }
                     }
                 }
             }
+
+            Miner.moveInDirection(rc, currLocation.directionTo(closestStation));
 
             return currLocation.distanceSquaredTo(myHQLocation) <= 2;
         }
@@ -101,10 +128,21 @@ public class Landscaper {
             Direction digDirection = currLocation.directionTo(myHQLocation).opposite();
             Direction[] sources = {digDirection.rotateLeft(), digDirection, digDirection.rotateRight()};
             for (Direction dir : sources) {
-                if (rc.canDigDirt(dir)) {
+                boolean robotInWay = false;
+                MapLocation dirtLocation = currLocation.add(dir);
+                RobotInfo rob = rc.senseRobotAtLocation(dirtLocation);
+
+                if (rob != null) {
+                    if (rob.getType() != RobotType.DELIVERY_DRONE) {
+                        robotInWay = true;
+                    }
+                }
+
+                if (rc.canDigDirt(dir) && !robotInWay) {
                     rc.digDirt(dir);
                 }
             }
+
         } else if (rc.isReady()) {
 
             int lowestElevation = 99999;
@@ -145,7 +183,7 @@ public class Landscaper {
         MapLocation currLocation = rc.getLocation();
 
         for (int i = 0; i < Direction.allDirections().length; i++) {
-            if (rc.canMove(dir) && !rc.senseFlooding(rc.getLocation().add(dir))) {
+            if (rc.canMove(dir) && !rc.senseFlooding(currLocation.add(dir))) {
                 rc.move(dir);
             } else {
                // dir = dir.rotateLeft();
