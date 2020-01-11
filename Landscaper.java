@@ -21,8 +21,25 @@ public class Landscaper {
     static int travelled = toTravel / 2;
 
     public static void run(RobotController rc) throws GameActionException {
+        // Determine if attacking or defending
         if (!chosen) {
-            attacker = rc.getRoundNum() % 4 < 2;
+            MapLocation DSLocation = null;
+            RobotInfo[] nearby = rc.senseNearbyRobots(RobotType.LANDSCAPER.sensorRadiusSquared, rc.getTeam());
+            for (RobotInfo robot : nearby) {
+                if (robot.getType() == RobotType.DESIGN_SCHOOL) {
+                    DSLocation = robot.getLocation();
+                    break;
+                }
+            }
+            Direction fromDS = DSLocation.directionTo(rc.getLocation());
+
+            List<Direction> cardinals = Arrays.asList(Direction.cardinalDirections());
+            if (cardinals.contains(fromDS)) {
+                attacker = true;
+            } else {
+                attacker = false;
+            }
+
             //attacker = false;
             chosen = true;
         }
