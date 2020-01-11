@@ -34,8 +34,8 @@ public class Landscaper {
             }
 
             // If STILL can't see, address accordingly:
-
-            searchForHQ(rc);
+            if(myHQLocation == null)
+                searchForHQ(rc);
         }
 
         if (!attacker) {
