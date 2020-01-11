@@ -17,7 +17,7 @@ public class Common {
     static final int SEARCH_SOUP = 1;
     static final int SEARCH_FLOOD = 2;
 
-    static final int START_COST         = 15;
+    static final int START_COST   = 15;
 
     static final int SIGNATURE = 687971717;
 
