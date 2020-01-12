@@ -14,6 +14,7 @@ public class Landscaper {
 
     static boolean chosen = false;
     static boolean attacker = false;
+    static boolean digFromHQ = false;
 
     static Direction searchDirection = Direction.WEST;
 
@@ -40,7 +41,6 @@ public class Landscaper {
                 attacker = false;
             }
 
-            //attacker = false;
             chosen = true;
         }
 
@@ -150,16 +150,16 @@ public class Landscaper {
         List<Direction> diagonals = Arrays.asList(diagonalsArray);
 
         Direction fromHQ = myHQLocation.directionTo(currLocation);
-        System.out.println("FromHQ: " + fromHQ);
         if (diagonals.contains(fromHQ)) {
             MapLocation rightLocation = myHQLocation.add(fromHQ.rotateRight());
             MapLocation leftLocation = myHQLocation.add(fromHQ.rotateLeft());
 
             if (rc.canSenseLocation(rightLocation)) {
-                if (rc.senseRobotAtLocation(rightLocation) == null);
-                Direction rightDir = currLocation.directionTo(rightLocation);
-                if (rc.canMove(rightDir)) {
-                    rc.move(rightDir);
+                if (rc.senseRobotAtLocation(rightLocation) == null) {
+                    Direction rightDir = currLocation.directionTo(rightLocation);
+                    if (rc.canMove(rightDir)) {
+                        rc.move(rightDir);
+                    }
                 }
             }
 
@@ -173,27 +173,49 @@ public class Landscaper {
             }
         }
 
-        if (rc.getDirtCarrying() < RobotType.LANDSCAPER.dirtLimit) {
-            Direction digDirection = currLocation.directionTo(myHQLocation).opposite();
-            Direction[] sources = {digDirection.rotateLeft(), digDirection, digDirection.rotateRight()};
-            for (Direction dir : sources) {
-                boolean robotInWay = false;
-                MapLocation dirtLocation = currLocation.add(dir);
-                RobotInfo rob = rc.senseRobotAtLocation(dirtLocation);
+        // Now, Determine which direction to dig dirt from
+        // Be sure to check whether HQ needs digging
+        Transaction[] transactions = rc.getBlock(rc.getRoundNum() - 1);
+        for (Transaction transaction : transactions) {
+            int[] message = transaction.getMessage();
+            if (message[6] == Common.SIGNATURE && message[0] == Common.HQ_BEING_BURIED) {
+                if (message[1] == 1) {
+                    digFromHQ = true;
+                } else if (message[1] == 0) {
+                    digFromHQ = false;
+                }
+            }
+        }
 
-                if (rob != null) {
-                    if (rob.getType() != RobotType.DELIVERY_DRONE) {
-                        robotInWay = true;
+        if (rc.getDirtCarrying() < RobotType.LANDSCAPER.dirtLimit) {
+            if (!digFromHQ) {
+                Direction digDirection = currLocation.directionTo(myHQLocation).opposite();
+                Direction[] sources = {digDirection.rotateLeft(), digDirection, digDirection.rotateRight()};
+                for (Direction dir : sources) {
+                    boolean robotInWay = false;
+                    MapLocation dirtLocation = currLocation.add(dir);
+                    RobotInfo rob = rc.senseRobotAtLocation(dirtLocation);
+
+                    if (rob != null) {
+                        if (rob.getType() != RobotType.DELIVERY_DRONE) {
+                            robotInWay = true;
+                        }
+                    }
+
+                    if (rc.canDigDirt(dir) && !robotInWay) {
+                        rc.digDirt(dir);
                     }
                 }
 
-                if (rc.canDigDirt(dir) && !robotInWay) {
-                    rc.digDirt(dir);
+            } else {
+                Direction dirToHQ = currLocation.directionTo(myHQLocation);
+                if (rc.canDepositDirt(dirToHQ)) {
+                    rc.digDirt(dirToHQ);
                 }
             }
 
         } else if (rc.isReady()) {
-
+            // Finally, deposit dirt at the lowest elevation around the HQ
             int lowestElevation = 99999;
             Direction bestDir = null;
             for (Direction dir : Direction.allDirections()) {
@@ -201,7 +223,6 @@ public class Landscaper {
                 Direction dirToStation = currLocation.directionTo(station);
                 if (rc.canDepositDirt(dirToStation) && !station.equals(myHQLocation) && station.distanceSquaredTo(myHQLocation) <= 2) {
                     int stationElevation = rc.senseElevation(station);
-                    System.out.println("station location " + station + "at elevation: " + stationElevation);
 
                     if (stationElevation < lowestElevation) {
                         lowestElevation = stationElevation;
@@ -210,7 +231,6 @@ public class Landscaper {
                 }
             }
 
-            System.out.println("depsoit in dir: " + bestDir + "at elevation: " + lowestElevation);
             if (rc.canDepositDirt(bestDir)) {
                 rc.depositDirt(bestDir);
             }

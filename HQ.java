@@ -7,7 +7,9 @@ public class HQ {
     static Direction[] directions = Direction.allDirections();
     static int dirBuild = 0;
 
-    public static int miners = 0;
+    static int miners = 0;
+
+    static boolean buried = false;
 
     public static void run(RobotController rc) throws GameActionException {
 
@@ -27,13 +29,6 @@ public class HQ {
             rc.shootUnit(nearestID);
         }
 
-        // Hardcode a miner on first few rounds
-//        if (rc.getRoundNum() < 10) {
-//            for (Direction dir : directions) {
-//                Common.tryBuild(rc, RobotType.MINER, dir);
-//            }
-//        }
-
         // Try every direction to build a miner
         int MAX_MINERS = 5 + (rc.getRoundNum() / 200);
         for (int i = 0; i < directions.length; i++) {
@@ -45,6 +40,18 @@ public class HQ {
             dirBuild++;
         }
 
+        // Check to see if there's dirt
+        if (rc.getDirtCarrying() > 0 && !buried) {
+            System.out.println("HELP ME");
+            Common.broadcast(rc, Common.BroadcastType.HQBeingBuried, 1, 0);
+            buried = true;
+        }
+
+        if (buried && rc.getDirtCarrying() == 0) {
+            System.out.println("Saved");
+            Common.broadcast(rc, Common.BroadcastType.HQBeingBuried, 0, 0);
+            buried = false;
+        }
 
     }
 }
