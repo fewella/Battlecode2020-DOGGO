@@ -5,7 +5,9 @@ import battlecode.common.*;
 public class Miner {
 
     static Direction searchDirection = null;
+    //static Direction obstacleFollowingDirection = null;
 
+    static Direction prevDirection = null;
     static MapLocation soupLocation = null;
     static MapLocation myHQLocation = null;
 
@@ -180,7 +182,7 @@ public class Miner {
     public static boolean moveInDirection(RobotController rc, Direction dir) throws GameActionException {
         MapLocation currLocation = rc.getLocation();
 
-        int tolerablePollution = RobotType.REFINERY.globalPollutionAmount + RobotType.REFINERY.localPollutionAdditiveEffect;
+        int tolerablePollution = (RobotType.REFINERY.globalPollutionAmount + RobotType.REFINERY.localPollutionAdditiveEffect)*100000;
 
         // If areas of no pollution
         Direction initialSearchDirection = dir;
@@ -210,23 +212,43 @@ public class Miner {
 
             if (rc.canMove(dir) && !rc.senseFlooding(currLocation.add(dir))
                     && rc.sensePollution(currLocation.add(dir)) <= tolerablePollution //TODO: determine actual good value to avoid
-                    && !isObstacle) {
+                    && (prevDirection == null || !prevDirection.equals(dir.opposite())) ) {
                 rc.move(dir);
+                prevDirection = dir;
+                //obstacleFollowingDirection = null; //not following wall, can move where want now
                 break;
             } else {
-                //if a wall is hit, try a different direction -> TODO: should also get it to back away from wall to improve search area
+//                //if a wall is hit, try a different direction -> TODO: should also get it to back away from wall to improve search area
+//                if(obstacleFollowingDirection == null) { //following obstacle
+//                    obstacleFollowingDirection = dir.rotateLeft();
+//                }else if(rc.canMove(obstacleFollowingDirection) && !rc.senseFlooding((currLocation.add(obstacleFollowingDirection)))){
+//                    rc.move(obstacleFollowingDirection);
+//                    prevLocation = currLocation;
+//                }else{
+//                    obstacleFollowingDirection = obstacleFollowingDirection.rotateLeft();
+//                }
                 dir = dir.rotateLeft();
             }
         }
 
-        // if there is pollution:
+        // if there is pollution: //TODO: currently pollution not used
         dir = initialSearchDirection;
         for (int i = 0; i < Direction.allDirections().length; i++) {
             // System.out.println("Trying direction (pollution loop):" + dir.toString());
-            if (rc.canMove(dir) && !rc.senseFlooding(rc.getLocation().add(dir))) {
+            if (rc.canMove(dir) && !rc.senseFlooding(rc.getLocation().add(dir))
+                    && (prevDirection == null || !prevDirection.equals(dir.opposite())) ) {
                 rc.move(dir);
+                prevDirection = dir;
             } else {
                 //if a wall is hit, try a different direction -> TODO: should also get it to back away from wall to improve search area
+//                if(obstacleFollowingDirection == null) { //following obstacle
+//                    obstacleFollowingDirection = dir.rotateLeft();
+//                }else if(rc.canMove(obstacleFollowingDirection) && !rc.senseFlooding((currLocation.add(obstacleFollowingDirection)))){
+//                    rc.move(obstacleFollowingDirection);
+//                    prevLocation = currLocation;
+//                }else{
+//                    obstacleFollowingDirection = obstacleFollowingDirection.rotateLeft();
+//                }
                 dir = dir.rotateLeft();
             }
         }
