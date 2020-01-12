@@ -17,9 +17,12 @@ public class DesignSchool {
         {
             if (attacking > 0) {
                 for (Direction dir : Direction.cardinalDirections()) {
-                    Common.tryBuild(rc, RobotType.LANDSCAPER, dir);
+                    if(Common.tryBuild(rc, RobotType.LANDSCAPER, dir)) {
+                        attacking--;
+                        break;
+                    }
                 }
-                attacking--;
+
             }
 
             else {

@@ -5,7 +5,10 @@ import battlecode.common.*;
 public class Miner {
 
     static Direction searchDirection = null;
+
     //static Direction obstacleFollowingDirection = null;
+
+    // static Direction pathDirection = null;
 
     static Direction prevDirection = null;
     static MapLocation soupLocation = null;
