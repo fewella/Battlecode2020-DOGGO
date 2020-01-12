@@ -6,10 +6,6 @@ public class Miner {
 
     static Direction searchDirection = null;
 
-    //static Direction obstacleFollowingDirection = null;
-
-    // static Direction pathDirection = null;
-
     static Direction prevDirection = null;
     static MapLocation soupLocation = null;
     static MapLocation myHQLocation = null;
@@ -199,6 +195,7 @@ public class Miner {
                 Direction left = dir.rotateLeft();
                 Direction right = dir.rotateRight();
 
+                //TODO: is this chunk necessary?
                 Direction[] testDirections = {left, dir, right};
                 for (Direction searchDirection : testDirections) {
                     MapLocation senseLocation = currLocation.add(searchDirection);
@@ -218,18 +215,11 @@ public class Miner {
                     && (prevDirection == null || !prevDirection.equals(dir.opposite())) ) {
                 rc.move(dir);
                 prevDirection = dir;
-                //obstacleFollowingDirection = null; //not following wall, can move where want now
                 break;
             } else {
-//                //if a wall is hit, try a different direction -> TODO: should also get it to back away from wall to improve search area
-//                if(obstacleFollowingDirection == null) { //following obstacle
-//                    obstacleFollowingDirection = dir.rotateLeft();
-//                }else if(rc.canMove(obstacleFollowingDirection) && !rc.senseFlooding((currLocation.add(obstacleFollowingDirection)))){
-//                    rc.move(obstacleFollowingDirection);
-//                    prevLocation = currLocation;
-//                }else{
-//                    obstacleFollowingDirection = obstacleFollowingDirection.rotateLeft();
-//                }
+//                //if a wall is hit, try a different direction ->
+//                TODO: should also get it to back away from wall to improve search area, loops
+
                 dir = dir.rotateLeft();
             }
         }
@@ -243,15 +233,9 @@ public class Miner {
                 rc.move(dir);
                 prevDirection = dir;
             } else {
-                //if a wall is hit, try a different direction -> TODO: should also get it to back away from wall to improve search area
-//                if(obstacleFollowingDirection == null) { //following obstacle
-//                    obstacleFollowingDirection = dir.rotateLeft();
-//                }else if(rc.canMove(obstacleFollowingDirection) && !rc.senseFlooding((currLocation.add(obstacleFollowingDirection)))){
-//                    rc.move(obstacleFollowingDirection);
-//                    prevLocation = currLocation;
-//                }else{
-//                    obstacleFollowingDirection = obstacleFollowingDirection.rotateLeft();
-//                }
+                //if a wall is hit, try a different direction ->
+                // TODO: should also get it to back away from wall to improve search area, also avoid loops
+//
                 dir = dir.rotateLeft();
             }
         }
