@@ -13,6 +13,7 @@ public class DeliveryDrone {
     static MapLocation defHQ = null;
     static int myLandscaperID = -1;
     static int searchSpot = 0;
+    static boolean deliveredLandscaper = false;
 
     public static void run(RobotController rc) throws GameActionException {
 
@@ -31,8 +32,29 @@ public class DeliveryDrone {
             }
         }
 
+        if(deliveredLandscaper){ //if delivered one, try to help attack HQ
+            RobotInfo[] nearby = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam().opponent());
+            for (RobotInfo robot : nearby) {
+                if (robot.getType() == RobotType.LANDSCAPER) {
+                    if(rc.canPickUpUnit(robot.getID())){
+                        rc.canPickUpUnit(robot.getID());
+                    }else{
+                        moveInDirection(rc, rc.getLocation().directionTo(robot.getLocation()));
+                    }
+                }
+            }
+            MapLocation water = Common.searchForTile(rc, rc.getLocation(), Common.SEARCH_FLOOD, RobotType.DELIVERY_DRONE.sensorRadiusSquared);
+            if(water != null){
+                if(water.isAdjacentTo(rc.getLocation())){
+                    rc.dropUnit(rc.getLocation().directionTo(water));
+                }else{
+                    moveInDirection(rc, rc.getLocation().directionTo(defHQ).opposite());
+                }
+            }
+        }
+
         //fetch a landscaper
-        if(myLandscaperID > 0 && landscaperLoc != null && homeArea != null){
+        else if(myLandscaperID > 0 && landscaperLoc != null && homeArea != null){
             //if next to the landscaper
             if(!rc.isCurrentlyHoldingUnit()) {
                  if (rc.canPickUpUnit(myLandscaperID)) {
@@ -61,6 +83,7 @@ public class DeliveryDrone {
                                 rc.dropUnit(dropDir);
                                 myLandscaperID = -1;
                                 searchSpot = 0;
+                                deliveredLandscaper = true;
                             } else {
                                 moveInDirection(rc, dropDir.rotateLeft().rotateLeft());
                             }
@@ -90,11 +113,12 @@ public class DeliveryDrone {
                         if (HQFound) {
                             Direction dropDir = rc.getLocation().directionTo(defHQ);
                             MapLocation dropLoc = rc.getLocation().add(dropDir);
-                            if (dropLoc.isWithinDistanceSquared(defHQ, RobotType.LANDSCAPER.sensorRadiusSquared / 2)) {
+                            if (dropLoc.isWithinDistanceSquared(defHQ, 2)) {
                                 if (rc.canDropUnit(dropDir) && !rc.senseFlooding(dropLoc)) {
                                     rc.dropUnit(dropDir);
                                     myLandscaperID = -1;
                                     searchSpot = 0;
+                                    deliveredLandscaper = true;
                                 } else {
                                     moveInDirection(rc, dropDir);
                                 }
