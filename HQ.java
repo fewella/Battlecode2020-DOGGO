@@ -12,7 +12,6 @@ public class HQ {
     static boolean buried = false;
 
     public static void run(RobotController rc) throws GameActionException {
-
         // built-in NET GUN check for and shoot drones
         MapLocation myLocation = rc.getLocation();
         RobotInfo[] nearbyEnemies = rc.senseNearbyRobots(RobotType.HQ.sensorRadiusSquared, rc.getTeam().opponent());

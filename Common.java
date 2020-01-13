@@ -22,6 +22,7 @@ public class Common {
     static final int START_COST   = 15;
 
     static int SIGNATURE = 687971717;
+    static boolean adjusted = false;
 
     static boolean tryBuild(RobotController rc, RobotType type, Direction dir) throws GameActionException {
         if (rc.isReady() && rc.canBuildRobot(type, dir)) {

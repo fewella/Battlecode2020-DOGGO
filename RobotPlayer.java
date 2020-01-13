@@ -23,14 +23,18 @@ public strictfp class RobotPlayer {
 
         turnCount = 0;
 
-        // System.out.println("I'm a " + rc.getType() + " and I just got created!");
+        // Make sure signature is ok
+        if (!Common.adjusted && rc.getTeam() == Team.A) {
+            System.out.println("ADJUSTING SIGN");
+            Common.SIGNATURE++;
+            Common.adjusted = true;
+        }
+        System.out.println("my signature: " + Common.SIGNATURE);
+
         while (true) {
             turnCount += 1;
-            // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
+
             try {
-                // Here, we've separated the controls into a different method for each RobotType.
-                // You can add the missing ones or rewrite this into your own control structure.
-                // System.out.println("I'm a " + rc.getType() + "! Location " + rc.getLocation());
 
                 switch (rc.getType()) {
                     case HQ:                 HQ.run(rc);                break;
