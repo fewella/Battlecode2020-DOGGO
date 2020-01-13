@@ -39,6 +39,8 @@ public class HQ {
             dirBuild++;
         }
 
+        System.out.println("Dirt on me: " + rc.getDirtCarrying());
+
         // Check to see if there's dirt
         if (rc.getDirtCarrying() > 0 && !buried) {
             System.out.println("HELP ME");

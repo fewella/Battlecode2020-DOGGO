@@ -9,9 +9,11 @@ public class Miner {
     static Direction prevDirection = null;
     static MapLocation soupLocation = null;
     static MapLocation myHQLocation = null;
+    static MapLocation refineryLocation = null;
 
     static boolean builtDesignSchool = false;
     static boolean builtFulfillmentCenter = false;
+
 
     static boolean goingBackToHQ = false;
 
@@ -46,7 +48,6 @@ public class Miner {
         // Logic for moving!
         // First, determine if I need to go back to HQ
         if (goingBackToHQ) {
-            System.out.println("GOING BACK TO HQ");
             if (designSchoolTooFar(currLocation)) {
                 moveInDirection(rc, currLocation.directionTo(myHQLocation));
             } else {
@@ -85,6 +86,10 @@ public class Miner {
                     myHQLocation = curr.location;
                     break;
 
+                case REFINERY:
+                    refineryLocation = curr.location;
+                    break;
+
                 default:
                     break;
             }
@@ -92,6 +97,7 @@ public class Miner {
 
 
         // Build fulfillment center or design school if able
+        // Make sure they're not too far
         if (!builtDesignSchool) {
             if (tryBuildBuilding(rc, RobotType.DESIGN_SCHOOL, currLocation, false)) {
                 if (designSchoolTooFar(currLocation)) {
@@ -104,8 +110,14 @@ public class Miner {
             }
         }
         if (!builtFulfillmentCenter) {
-            if (tryBuildBuilding(rc, RobotType.FULFILLMENT_CENTER, currLocation, true)) {
-                builtFulfillmentCenter = true;
+            if (tryBuildBuilding(rc, RobotType.FULFILLMENT_CENTER, currLocation, false)) {
+                if (fulfillmentCenterTooFar(currLocation)) {
+                    goingBackToHQ = true;
+                } else {
+                    if (tryBuildBuilding(rc, RobotType.FULFILLMENT_CENTER, currLocation, true)) {
+                        builtFulfillmentCenter = true;
+                    }
+                }
             }
         }
 
@@ -277,6 +289,10 @@ public class Miner {
         Direction oppositeHQ = currLocation.directionTo(myHQLocation).opposite();
         MapLocation farthestBuild = currLocation.add(oppositeHQ);
         return (!farthestBuild.isWithinDistanceSquared(myHQLocation, RobotType.LANDSCAPER.sensorRadiusSquared));
+    }
+
+    static boolean fulfillmentCenterTooFar(MapLocation currLocation) {
+        return currLocation.distanceSquaredTo(myHQLocation) >= 50;
     }
 
 }
