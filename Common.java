@@ -49,8 +49,8 @@ public class Common {
 
         boolean searchingEast = true;
         int maxSoup = 0;
-        for (int i = 0; i < radius * 2; i++) {
-            for (int j = 0; j < radius * 2; j++) {
+        for (int i = 0; i < radius * 2 + 1; i++) {
+            for (int j = 0; j < radius * 2 + 1; j++) {
                 if (rc.canSenseLocation(senseLocation)) {
 
                     if (tile == SEARCH_SOUP) {

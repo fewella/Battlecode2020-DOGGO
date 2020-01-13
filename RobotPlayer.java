@@ -25,11 +25,9 @@ public strictfp class RobotPlayer {
 
         // Make sure signature is ok
         if (!Common.adjusted && rc.getTeam() == Team.A) {
-            System.out.println("ADJUSTING SIGN");
             Common.SIGNATURE++;
             Common.adjusted = true;
         }
-        System.out.println("my signature: " + Common.SIGNATURE);
 
         while (true) {
             turnCount += 1;
