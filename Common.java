@@ -8,13 +8,15 @@ public class Common {
         MinerFoundSoup,
         MinerBuiltRefinery,
         LandscaperWantsDrone,
-        HQBeingBuried
+        HQBeingBuried,
+        BuildRefinery
     }
 
-    static final int MINER_FOUND_SOUP_NUM     = 0;
-    static final int MINER_FOUND_REFINERY_NUM = 1;
-    static final int LANDSCAPER_WANTS_DRONE   = 2;
-    static final int HQ_BEING_BURIED          = 3;
+    static final int MINER_FOUND_SOUP       = 0;
+    static final int MINER_BUILT_REFINERY   = 1;
+    static final int LANDSCAPER_WANTS_DRONE = 2;
+    static final int HQ_BEING_BURIED        = 3;
+    static final int BUILD_REFINERY         = 4;
 
     static final int SEARCH_SOUP = 1;
     static final int SEARCH_FLOOD = 2;
@@ -98,11 +100,11 @@ public class Common {
         switch (type) {
 
             case MinerFoundSoup:
-                message[0] = MINER_FOUND_SOUP_NUM;
+                message[0] = MINER_FOUND_SOUP;
                 break;
 
             case MinerBuiltRefinery:
-                message[0] = MINER_FOUND_REFINERY_NUM;
+                message[0] = MINER_BUILT_REFINERY;
                 break;
 
             case LandscaperWantsDrone:
@@ -113,6 +115,10 @@ public class Common {
             case HQBeingBuried:
                 // message[1] will carried the info: 0 means free, 1 means help
                 message[0] = HQ_BEING_BURIED;
+                break;
+
+            case BuildRefinery:
+                message[0] = BUILD_REFINERY;
                 break;
 
             default:

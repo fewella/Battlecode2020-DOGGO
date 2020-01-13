@@ -17,6 +17,7 @@ public class Landscaper {
     static boolean chosen = false;
     static boolean attacker = false;
     static boolean digFromHQ = false;
+    static boolean broadcastRefinery = false;
 
     static Direction searchDirection = Direction.WEST;
 
@@ -47,6 +48,12 @@ public class Landscaper {
             }
 
             chosen = true;
+        }
+
+        // If defending, tell miners to build a refinery
+        if (!attacker && !broadcastRefinery) {
+            Common.broadcast(rc, Common.BroadcastType.BuildRefinery, 0, 0);
+            broadcastRefinery = true;
         }
 
         // Look for HQ if don't have its location

@@ -13,7 +13,7 @@ public class Miner {
 
     static boolean builtDesignSchool = false;
     static boolean builtFulfillmentCenter = false;
-
+    static boolean shouldBuildRefinery = false;
 
     static boolean goingBackToHQ = false;
 
@@ -21,18 +21,30 @@ public class Miner {
         MapLocation currLocation = rc.getLocation();
         int currSoup = rc.getTeamSoup();
 
-        // TODO: read block
-        // Check PREVIOUS TURN chain, check for soup and refinery
+        // Check PREVIOUS TURN blockchain, check for soup and refinery
         Transaction[] transactions = rc.getBlock(rc.getRoundNum() - 1);
         for (Transaction transaction : transactions) {
             int[] message = transaction.getMessage();
             if (message[6] == Common.SIGNATURE) {
 
-                if (message[0] == Common.MINER_FOUND_SOUP_NUM && soupLocation == null) {
+                if (message[0] == Common.MINER_FOUND_SOUP && soupLocation == null) {
                     soupLocation = new MapLocation(message[1], message[2]);
                     System.out.println("SETTING SOUP LOCATION");
                 }
+
+                else if (message[0] == Common.BUILD_REFINERY) {
+                    shouldBuildRefinery = true;
+                }
+
+                else if (message[0] == Common.MINER_BUILT_REFINERY) {
+                    refineryLocation = new MapLocation(message[1], message[2]);
+                    System.out.println("SETTING REFINERY LOCATION");
+                }
             }
+        }
+
+        if (refineryLocation != null) {
+            shouldBuildRefinery = false;
         }
 
         // Search for soup! But only if we haven't found soup
@@ -71,7 +83,6 @@ public class Miner {
 
         // Check if refinery exists nearby
         // While we're at it, check for fulfillment centers, design schools, and HQ
-
         for (RobotInfo curr : nearby) {
             switch (curr.getType()) {
                 case DESIGN_SCHOOL:
@@ -121,6 +132,24 @@ public class Miner {
             }
         }
 
+        // Make a refinery if it's time to get out of the way, or if HQ too far away
+        if ((currLocation.distanceSquaredTo(myHQLocation) >= 50
+                || (refineryLocation != null && refineryLocation.distanceSquaredTo(refineryLocation) >= 50))
+                && refineryLocation == null) {
+
+            shouldBuildRefinery = true;
+        }
+
+        if (shouldBuildRefinery) {
+            if (tryBuildBuilding(rc, RobotType.REFINERY, currLocation, true)) {
+                shouldBuildRefinery = false;
+                Common.broadcast(rc, Common.BroadcastType.MinerBuiltRefinery, currLocation.x, currLocation.y);
+            }
+        }
+
+        // Vaporator for funsies
+        tryBuildBuilding(rc, RobotType.VAPORATOR, currLocation, true);
+
         // Move.
         int soupCarrying = rc.getSoupCarrying();
         System.out.println("I HAVE " + soupCarrying + " SOUP");
@@ -168,7 +197,11 @@ public class Miner {
             // 2. If fails, check remaining directions to be safe
             // 3. Else, move towards refinery
 
-            Direction toRefinery = currLocation.directionTo(myHQLocation);
+            MapLocation refineLocation = myHQLocation;
+            if (refineryLocation != null) {
+                refineLocation = refineryLocation;
+            }
+            Direction toRefinery = currLocation.directionTo(refineLocation);
             if (rc.canDepositSoup(toRefinery)) {
                 rc.depositSoup(toRefinery, soupCarrying);
             } else {
@@ -247,7 +280,6 @@ public class Miner {
             } else {
                 //if a wall is hit, try a different direction ->
                 // TODO: should also get it to back away from wall to improve search area, also avoid loops
-//
                 dir = dir.rotateLeft();
             }
         }

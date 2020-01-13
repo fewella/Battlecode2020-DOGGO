@@ -4,7 +4,8 @@ import battlecode.common.*;
 
 public class HQ {
 
-    static Direction[] directions = Direction.allDirections();
+    //static Direction[] directions = Direction.allDirections();
+    static Direction[] directions = {Direction.NORTHWEST, Direction.SOUTHEAST, Direction.NORTHEAST, Direction.SOUTHWEST, Direction.NORTH, Direction.EAST, Direction.WEST, Direction.SOUTH};
     static int dirBuild = 0;
 
     static int miners = 0;
