@@ -4,6 +4,7 @@ import battlecode.common.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class Landscaper {
 
@@ -11,6 +12,7 @@ public class Landscaper {
     static MapLocation myHQLocation = null;
 
     static boolean placed = false;
+    static boolean closestSpotFound = false;
 
     static boolean chosen = false;
     static boolean attacker = false;
@@ -20,6 +22,9 @@ public class Landscaper {
 
     static int toTravel = Common.getRealRadius(RobotType.LANDSCAPER);
     static int travelled = toTravel / 2;
+
+    static MapLocation closestSpot = null;
+    static MapLocation loopStart = null;
 
     public static void run(RobotController rc) throws GameActionException {
         // Determine if attacking or defending
@@ -82,8 +87,9 @@ public class Landscaper {
                 }
                 else{
                     //either wall in the way, or not right next to HQ
-                    if(moveInDirection(rc, opponentHQDirection)){}
+                    if(notClosestSpot(rc, opponentHQLocation)){}
                     else{
+                        System.out.println("found closest spot!");
                         tryDig(rc, opponentHQDirection); //take away wall and put under self
                     }
                 }
@@ -93,6 +99,46 @@ public class Landscaper {
             }
 
         }
+    }
+
+    static boolean notClosestSpot(RobotController rc, MapLocation idealAdjSpot) throws GameActionException {
+        MapLocation currLocation = rc.getLocation();
+        if(currLocation.isAdjacentTo(idealAdjSpot)){
+            closestSpot = null;
+            loopStart = null;
+            return false;
+        }
+        if(loopStart == null){
+            loopStart = currLocation;
+            closestSpot = currLocation;
+            Miner.moveInDirection(rc, currLocation.directionTo(idealAdjSpot));
+            return true;
+        }
+        else if(loopStart.equals(currLocation)) {
+            closestSpotFound = true;
+            if (!currLocation.equals(closestSpot)) {
+                Miner.moveInDirection(rc, currLocation.directionTo(closestSpot));
+                return true;
+            }
+        }
+        else if(closestSpotFound){
+            if (!currLocation.equals(closestSpot)) {
+                Miner.moveInDirection(rc, currLocation.directionTo(closestSpot));
+                return true;
+            }else{
+                closestSpotFound = false;
+                closestSpot = null;
+                loopStart = null;
+                return false;
+            }
+        }else{
+            if(closestSpot == null || closestSpot.distanceSquaredTo(idealAdjSpot) > currLocation.distanceSquaredTo(idealAdjSpot)){
+                closestSpot = currLocation;
+            }
+            Miner.moveInDirection(rc, currLocation.directionTo(idealAdjSpot));
+            return true;
+        }
+        return true;
     }
 
     static void searchForHQ(RobotController rc) throws GameActionException {
@@ -259,21 +305,21 @@ public class Landscaper {
         return false;
     }
 
-    static boolean moveInDirection(RobotController rc, Direction dir) throws GameActionException {
-        MapLocation currLocation = rc.getLocation();
-
-        for (int i = 0; i < Direction.allDirections().length; i++) {
-            if (rc.canMove(dir) && !rc.senseFlooding(currLocation.add(dir))) {
-                rc.move(dir);
-                return true;
-            } else {
-               // dir = dir.rotateLeft();
-                //if a wall is hit, try a different direction -> TODO: should also get it to back away from wall to improve search area
-                return false;
-            }
-        }
-        return true;
-    }
+//    static boolean moveInDirection(RobotController rc, Direction dir) throws GameActionException {
+//        MapLocation currLocation = rc.getLocation();
+//
+//        for (int i = 0; i < Direction.allDirections().length; i++) {
+//            if (rc.canMove(dir) && !rc.senseFlooding(currLocation.add(dir))) {
+//                rc.move(dir);
+//                return true;
+//            } else {
+//               dir = dir.rotateLeft();
+//                //if a wall is hit, try a different direction -> TODO: should also get it to back away from wall to improve search area
+//
+//            }
+//        }
+//        return true;
+//    }
 
     static boolean broadcastPickup(RobotController rc, int xL, int yL, int xH, int yH) throws GameActionException {
         int[] message = new int[7];
