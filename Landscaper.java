@@ -312,22 +312,6 @@ public class Landscaper {
         return false;
     }
 
-//    static boolean moveInDirection(RobotController rc, Direction dir) throws GameActionException {
-//        MapLocation currLocation = rc.getLocation();
-//
-//        for (int i = 0; i < Direction.allDirections().length; i++) {
-//            if (rc.canMove(dir) && !rc.senseFlooding(currLocation.add(dir))) {
-//                rc.move(dir);
-//                return true;
-//            } else {
-//               dir = dir.rotateLeft();
-//                //if a wall is hit, try a different direction -> TODO: should also get it to back away from wall to improve search area
-//
-//            }
-//        }
-//        return true;
-//    }
-
     static boolean broadcastPickup(RobotController rc, int xL, int yL, int xH, int yH) throws GameActionException {
         int[] message = new int[7];
         message[0] = Common.LANDSCAPER_WANTS_DRONE;
