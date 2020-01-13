@@ -299,7 +299,10 @@ public class Miner {
         for (Direction dir : Direction.allDirections()) {
             MapLocation buildLocation = currLocation.add(dir);
 
-            boolean isSoup = rc.senseSoup(buildLocation) > 0;
+            boolean isSoup = true;
+            if (rc.canSenseLocation(buildLocation)) {
+                isSoup = rc.senseSoup(buildLocation) > 0;
+            }
             boolean adjacentToHQ = buildLocation.distanceSquaredTo(myHQLocation) < 9;
 
             if (!isSoup && !adjacentToHQ && rc.canBuildRobot(building, dir)) {
