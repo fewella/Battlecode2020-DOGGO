@@ -94,7 +94,9 @@ public class Landscaper {
                 }
                 else{
                     //either wall in the way, or not right next to HQ
-                    if(notClosestSpot(rc, opponentHQLocation)){}
+                    if(notClosestSpot(rc, opponentHQLocation)){
+                        System.out.println("looking for closest spot:" + opponentHQDirection.toString());
+                    }
                     else{
                         System.out.println("found closest spot!");
                         tryDig(rc, opponentHQDirection); //take away wall and put under self
@@ -112,30 +114,43 @@ public class Landscaper {
         MapLocation currLocation = rc.getLocation();
         if(currLocation.isAdjacentTo(idealAdjSpot)){
             closestSpot = null;
+            closestSpotFound = false;
             loopStart = null;
+            System.out.println("1");
+
             return false;
+
         }
-        if(loopStart == null){
+        else if(loopStart == null){
             loopStart = currLocation;
             closestSpot = currLocation;
             Miner.moveInDirection(rc, currLocation.directionTo(idealAdjSpot));
+
+            System.out.println("2");
             return true;
         }
         else if(loopStart.equals(currLocation)) {
             closestSpotFound = true;
             if (!currLocation.equals(closestSpot)) {
                 Miner.moveInDirection(rc, currLocation.directionTo(closestSpot));
+
+                System.out.println("3");
                 return true;
             }
+            System.out.println("3.1");
         }
         else if(closestSpotFound){
             if (!currLocation.equals(closestSpot)) {
                 Miner.moveInDirection(rc, currLocation.directionTo(closestSpot));
+
+                System.out.println("4");
                 return true;
             }else{
                 closestSpotFound = false;
                 closestSpot = null;
                 loopStart = null;
+
+                System.out.println("5");
                 return false;
             }
         }else{
@@ -143,8 +158,12 @@ public class Landscaper {
                 closestSpot = currLocation;
             }
             Miner.moveInDirection(rc, currLocation.directionTo(idealAdjSpot));
+            System.out.println("6");
             return true;
         }
+
+        System.out.println("7");
+        Miner.moveInDirection(rc, currLocation.directionTo(idealAdjSpot));
         return true;
     }
 

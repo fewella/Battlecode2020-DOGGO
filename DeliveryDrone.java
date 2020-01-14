@@ -76,21 +76,26 @@ public class DeliveryDrone {
                 if(defHQ != null){
                     Direction dropDirInit = rc.getLocation().directionTo(defHQ);
                     Direction[] dropDirs = {dropDirInit, dropDirInit.rotateLeft(), dropDirInit.rotateRight()};
+                    boolean dropped = false;
                     for(Direction dropDir: dropDirs) {
                         MapLocation dropLoc = rc.getLocation().add(dropDir);
                         if (dropLoc.isWithinDistanceSquared(defHQ, 2)) {
                             if (rc.canDropUnit(dropDir) && !rc.senseFlooding(dropLoc)) {
                                 rc.dropUnit(dropDir);
+                                dropped = true;
                                 myLandscaperID = -1;
                                 searchSpot = 0;
                                 deliveredLandscaper = true;
                             } else {
-                                moveInDirection(rc, dropDir.rotateLeft().rotateLeft());
+
+                                //moveInDirection(rc, dropDir.rotateLeft().rotateLeft());
                             }
-                        } else {
-                            moveInDirection(rc, dropDir);
                         }
                     }
+                    if(!dropped){
+                            moveInDirection(rc, dropDirInit);
+                        }
+
 
                 }else{
                     //look for enemy HQ
@@ -111,19 +116,28 @@ public class DeliveryDrone {
                             }
                         }
                         if (HQFound) {
-                            Direction dropDir = rc.getLocation().directionTo(defHQ);
-                            MapLocation dropLoc = rc.getLocation().add(dropDir);
-                            if (dropLoc.isWithinDistanceSquared(defHQ, 2)) {
-                                if (rc.canDropUnit(dropDir) && !rc.senseFlooding(dropLoc)) {
-                                    rc.dropUnit(dropDir);
-                                    myLandscaperID = -1;
-                                    searchSpot = 0;
-                                    deliveredLandscaper = true;
-                                } else {
-                                    moveInDirection(rc, dropDir);
+                            Direction dropDirInit = rc.getLocation().directionTo(defHQ);
+                            System.out.println("Enemy HQ in dirction: " + dropDirInit);
+                            Direction[] dropDirs = {dropDirInit, dropDirInit.rotateLeft(), dropDirInit.rotateRight()};
+                            boolean dropped = false;
+                            for(Direction dropDir: dropDirs) {
+                                MapLocation dropLoc = rc.getLocation().add(dropDir);
+                                if (dropLoc.isWithinDistanceSquared(defHQ, 2)) {
+                                    System.out.println("Trying to drop in direction: " + dropDir);
+                                    if (rc.canDropUnit(dropDir) && !rc.senseFlooding(dropLoc)) {
+                                        rc.dropUnit(dropDir);
+                                        dropped = true;
+                                        myLandscaperID = -1;
+                                        searchSpot = 0;
+                                        deliveredLandscaper = true;
+                                    }
                                 }
                             }
-                        } else {
+                            if(!dropped){
+                                moveInDirection(rc, dropDirInit);
+                            }
+                        }
+                        else {
                             searchSpot++;
                             if (searchSpot >= potentialHQ.length)
                                 searchSpot = 0;
