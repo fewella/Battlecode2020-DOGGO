@@ -65,7 +65,7 @@ public class Landscaper {
             }
         }
 
-        System.out.println("after serach hqlocation: " + myHQLocation);
+        //System.out.println("after serach hqlocation: " + myHQLocation);
 
         if (!attacker) {
             //defender, will wall the base TODO: later care about water round elevations
@@ -123,9 +123,13 @@ public class Landscaper {
 
         }
         else if(loopStart == null){
-            loopStart = currLocation;
+
             closestSpot = currLocation;
-            Miner.moveInDirection(rc, currLocation.directionTo(idealAdjSpot));
+            if(rc.canMove(currLocation.directionTo(idealAdjSpot)))
+            {
+                Miner.moveInDirection(rc, currLocation.directionTo(idealAdjSpot));
+                loopStart = currLocation;
+            }
 
             System.out.println("2");
             return true;
