@@ -8,6 +8,7 @@ import battlecode.common.RobotType;
 public class DesignSchool {
 
     static int attacking = 3;
+    static int defending = 8;
 
     public static void run(RobotController rc) throws GameActionException {
 
@@ -22,14 +23,18 @@ public class DesignSchool {
                         break;
                     }
                 }
-
             }
 
             else {
                 for (Direction dir : nonCardinal) {
-                    Common.tryBuild(rc, RobotType.LANDSCAPER, dir);
+                    if (Common.tryBuild(rc, RobotType.LANDSCAPER, dir)) {
+                        defending--;
+                        break;
+                    }
                 }
             }
+
         }
+
     }
 }

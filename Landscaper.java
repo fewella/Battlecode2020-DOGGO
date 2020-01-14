@@ -4,7 +4,6 @@ import battlecode.common.*;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 public class Landscaper {
 
@@ -64,17 +63,19 @@ public class Landscaper {
                     myHQLocation = curr.location;
                 }
             }
-
-            // If STILL can't see, address accordingly:
-            if(myHQLocation == null)
-                searchForHQ(rc);
         }
+
+        System.out.println("after serach hqlocation: " + myHQLocation);
 
         if (!attacker) {
             //defender, will wall the base TODO: later care about water round elevations
-            placed = goToHQ(rc);
-            if (placed) {
-                holeInHQ(rc);
+            if (myHQLocation != null) {
+                placed = goToHQ(rc);
+                if (placed) {
+                    holeInHQ(rc);
+                }
+            } else {
+                searchForHQ(rc);
             }
 
         } else {
@@ -182,6 +183,7 @@ public class Landscaper {
 
     static boolean goToHQ(RobotController rc) throws GameActionException {
         MapLocation currLocation = rc.getLocation();
+        System.out.println("urrlocation and myhqlocation: " + currLocation + " " + myHQLocation);
         if (currLocation.distanceSquaredTo(myHQLocation) <= 2) {
             return true;
 
@@ -201,6 +203,12 @@ public class Landscaper {
                             closestStation = station;
                         }
                     }
+                }
+            }
+
+            if (closestStation != null) {
+                if (Math.abs(rc.senseElevation(closestStation) - rc.senseElevation(currLocation)) > 6) {
+                    System.out.println("need a lift!!");
                 }
             }
 
